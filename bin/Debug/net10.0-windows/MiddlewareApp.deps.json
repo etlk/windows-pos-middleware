@@ -1,0 +1,175 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "MiddlewareApp/1.0.0": {
+        "dependencies": {
+          "PrintHTML.Core": "1.0.5",
+          "PusherClient": "2.2.1"
+        },
+        "runtime": {
+          "MiddlewareApp.dll": {}
+        }
+      },
+      "Figgle/0.5.1": {
+        "runtime": {
+          "lib/netstandard2.0/Figgle.dll": {
+            "assemblyVersion": "0.5.1.0",
+            "fileVersion": "0.5.1.0"
+          }
+        }
+      },
+      "NaCl.Net/0.1.13": {
+        "runtime": {
+          "lib/netstandard2.1/NaCl.dll": {
+            "assemblyVersion": "0.1.13.0",
+            "fileVersion": "0.1.13.0"
+          }
+        }
+      },
+      "Newtonsoft.Json/13.0.2": {
+        "runtime": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "assemblyVersion": "13.0.0.0",
+            "fileVersion": "13.0.2.27524"
+          }
+        }
+      },
+      "PrintHTML.Core/1.0.5": {
+        "dependencies": {
+          "Figgle": "0.5.1",
+          "QRCoder": "1.7.0",
+          "ZXing.Net": "0.16.11"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PrintHTML.Core.dll": {
+            "assemblyVersion": "1.0.5.0",
+            "fileVersion": "1.0.5.0"
+          }
+        }
+      },
+      "PusherClient/2.2.1": {
+        "dependencies": {
+          "NaCl.Net": "0.1.13",
+          "Newtonsoft.Json": "13.0.2",
+          "WebSocket4Net": "0.15.2"
+        },
+        "runtime": {
+          "lib/netstandard2.0/PusherClient.dll": {
+            "assemblyVersion": "2.2.1.0",
+            "fileVersion": "2.2.1.0"
+          }
+        }
+      },
+      "QRCoder/1.7.0": {
+        "runtime": {
+          "lib/net6.0/QRCoder.dll": {
+            "assemblyVersion": "1.7.0.0",
+            "fileVersion": "1.7.0.0"
+          }
+        }
+      },
+      "SuperSocket.ClientEngine.Core/0.10.0": {
+        "runtime": {
+          "lib/netstandard1.3/SuperSocket.ClientEngine.dll": {
+            "assemblyVersion": "0.10.0.0",
+            "fileVersion": "0.10.0.0"
+          }
+        }
+      },
+      "WebSocket4Net/0.15.2": {
+        "dependencies": {
+          "SuperSocket.ClientEngine.Core": "0.10.0"
+        },
+        "runtime": {
+          "lib/netstandard1.3/WebSocket4Net.dll": {
+            "assemblyVersion": "0.15.2.11",
+            "fileVersion": "0.15.2.11"
+          }
+        }
+      },
+      "ZXing.Net/0.16.11": {
+        "runtime": {
+          "lib/net9.0/zxing.dll": {
+            "assemblyVersion": "0.16.11.0",
+            "fileVersion": "0.16.11.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MiddlewareApp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Figgle/0.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-F21k9oOGRgSb+1dCX0kFDYRBbShSMFvL49xjNmF/dsJwiN5M7zBaSWsYKpi/KZWXVIIxNzTbNTq9ZciucaHYMQ==",
+      "path": "figgle/0.5.1",
+      "hashPath": "figgle.0.5.1.nupkg.sha512"
+    },
+    "NaCl.Net/0.1.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-AVg1455RQnyTy6tiessudruZHvbl70QWRPyx3og2I1Fei17LDNc7Z3DRgqN2+PsySBui/1EDP4A7adhQXydi6g==",
+      "path": "nacl.net/0.1.13",
+      "hashPath": "nacl.net.0.1.13.nupkg.sha512"
+    },
+    "Newtonsoft.Json/13.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-R2pZ3B0UjeyHShm9vG+Tu0EBb2lC8b0dFzV9gVn50ofHXh9Smjk6kTn7A/FdAsC8B5cKib1OnGYOXxRBz5XQDg==",
+      "path": "newtonsoft.json/13.0.2",
+      "hashPath": "newtonsoft.json.13.0.2.nupkg.sha512"
+    },
+    "PrintHTML.Core/1.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Cdjl/EJlYLsSs8qtAGwwebXcLhp8vV4KghAEFTUsYM4BqqXgjtr94IyR+iI5dLdm9ZGhXf6ZKShOJEUAS56zbw==",
+      "path": "printhtml.core/1.0.5",
+      "hashPath": "printhtml.core.1.0.5.nupkg.sha512"
+    },
+    "PusherClient/2.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-a7Ms+lozdwIJDgsreMt79dqpr1kCQ1j+rOaA3PlV5zxynPGpucIfxY86wM0uRbwx1GJeHbuwfvXBf27FF7yr9g==",
+      "path": "pusherclient/2.2.1",
+      "hashPath": "pusherclient.2.2.1.nupkg.sha512"
+    },
+    "QRCoder/1.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6R3hQkayihGIDjp3F1nLRDBWG+nqahGyOY2+fH4Rll16Vad67oaUUfHkOiMWKiJFnGh+PIGDfUos+0R9m54O1g==",
+      "path": "qrcoder/1.7.0",
+      "hashPath": "qrcoder.1.7.0.nupkg.sha512"
+    },
+    "SuperSocket.ClientEngine.Core/0.10.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1jkmODECz0/6jgKTDUFDkBxiLJJq0ROapAkcu6KfLBJUJl+jK6pvZbS2QtZ6QbeljpgESeFaiA17Ng4GCz8XjA==",
+      "path": "supersocket.clientengine.core/0.10.0",
+      "hashPath": "supersocket.clientengine.core.0.10.0.nupkg.sha512"
+    },
+    "WebSocket4Net/0.15.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xu6NiIDP6BEwO8cgXLUdWI8teB/TxVjzMjMYE7hcP93+MpZdxzDzz1cTFxU4OWVP0NESchcQO5LkiJ/wgB03AQ==",
+      "path": "websocket4net/0.15.2",
+      "hashPath": "websocket4net.0.15.2.nupkg.sha512"
+    },
+    "ZXing.Net/0.16.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OZfAVu88hl87BffQ+rlWCj/vLvAhhCK4QnFaoveeF/MY8SjHNSYBQ3qyUEWlPKNgBQGh1syXhCDg10vUnCsqkg==",
+      "path": "zxing.net/0.16.11",
+      "hashPath": "zxing.net.0.16.11.nupkg.sha512"
+    }
+  }
+}

@@ -1,0 +1,521 @@
+{
+    "data": {
+        "locations": [
+            {
+                "id": 1,
+                "code": "APLOC1",
+                "name": "Apparel",
+                "type": "apparel",
+                "city": "Colombo",
+                "country": "Sri Lanka",
+                "latitude": null,
+                "longitude": null,
+                "default_currency": "LKR",
+                "long_address": "1A Centre Road",
+                "devices": [
+                    {
+                        "id": 1,
+                        "selected_printer": null,
+                        "device_name": "Apparel Terminal",
+                        "serial_number": "000001",
+                        "device_status": "active",
+                        "type": "point_of_sale",
+                        "printer_type": "mobile_printer",
+                        "template_id": 1,
+                        "document_type": "html",
+                        "location_id": 1,
+                        "pos-register": {
+                            "id": 127,
+                            "user_id": 21,
+                            "created_at": "2026-03-25T01:10:57.000000Z"
+                        },
+                        "settings": {
+                            "virtual_keyboard": "on",
+                            "payment_confirmation": "on",
+                            "order_item_report": "on",
+                            "order_taxes_report": "on"
+                        },
+                        "kot_printer_type": null,
+                        "order_return_printer_type": "html",
+                        "quotation_printer_type": null,
+                        "pos_register_printer_type": "html",
+                        "ad": {
+                            "type": "video",
+                            "url": "https://csadmin.cloudpos.lk/storage/ads/01K7FZPGT01KQJR8GFQZQN1V0J.mp4"
+                        },
+                        "user_id": 10,
+                        "created_at": "2025-08-23 13:59:17",
+                        "updated_at": "2026-02-02 13:36:48"
+                    }
+                ],
+                "departments": [ {
+                        "id": 4,
+                        "name": "kitchen 03",
+                        "code": "TEL",
+                        "description": null,
+                        "is_active": 1,
+                        "categories": [],
+                        "created_at": "2026-03-31 12:36:43",
+                        "updated_at": "2026-04-06 17:41:35"
+                    }, {
+                        "id": 3,
+                        "name": "Bar",
+                        "code": "TEL",
+                        "description": null,
+                        "is_active": 1,
+                        "categories": [],
+                        "created_at": "2026-03-31 12:36:43",
+                        "updated_at": "2026-04-06 17:41:35"
+                    }],
+                "receipt_header": null,
+                "receipt_footer": null,
+                "custom_price": 0,
+                "loyalty_points_enabled": 1,
+                "customer_account_required": 1,
+                "location_settings": {
+                    "receipt": {
+                        "auto_print": "off",
+                        "sms_receipt": "on",
+                        "email_receipt": "on"
+                    },
+                    "kot": {
+                        "kot_enabled": "0"
+                    },
+                    "order_return": {
+                        "order_return_print_enabled": "1",
+                        "order_return_printer_type": "mobile_printer",
+                        "order_return_print_template": "5"
+                    },
+                    "pos_register": {
+                        "pos_register_print_enabled": "1",
+                        "pos_register_printer_type": "mobile_printer",
+                        "pos_register_print_template": "4"
+                    },
+                    "quotation": {
+                        "quotation_print_enabled": "0"
+                    }
+                }
+            },
+            {
+                "id": 2,
+                "code": "RELOC2",
+                "name": "Restaurant",
+                "type": "restaurant",
+                "city": "Colombo",
+                "country": "Sri Lanka",
+                "latitude": null,
+                "longitude": null,
+                "default_currency": "LKR",
+                "long_address": "1A Centre Road",
+                "devices": [
+                    {
+                        "id": 5,
+                        "device_name": "Restaurant Terminal",
+                        "serial_number": "000005",
+                        "device_status": "active",
+                        "type": "point_of_sale",
+                        "printer_type": "mobile_printer",
+                        "template_id": 1,
+                        "document_type": "html",
+                        "location_id": 2,
+                        "pos-register": {
+                            "id": 121,
+                            "user_id": 9,
+                            "created_at": "2026-03-19T03:27:44.000000Z"
+                        },
+                        "settings": {
+                            "virtual_keyboard": "on",
+                            "payment_confirmation": "on",
+                            "order_item_report": "on",
+                            "order_taxes_report": "on"
+                        },
+                        "kot_printer_type": "html",
+                        "order_return_printer_type": "html",
+                        "quotation_printer_type": null,
+                        "pos_register_printer_type": "html",
+                        "ad": {
+                            "type": "video",
+                            "url": "https://csadmin.cloudpos.lk/storage/ads/01K9D9EEKMZ672VQ408ZPA0T15.mp4"
+                        },
+                        "user_id": 10,
+                        "created_at": "2025-11-07 00:38:10",
+                        "updated_at": "2026-02-02 13:36:16"
+                    }
+                ],
+                "departments": [],
+                "receipt_header": null,
+                "receipt_footer": null,
+                "custom_price": 0,
+                "loyalty_points_enabled": 1,
+                "customer_account_required": 1,
+                "location_settings": {
+                    "kot": {
+                        "kot_enabled": "1",
+                        "kot_printer_type": "mobile_printer",
+                        "kot_template": "2"
+                    },
+                    "order_return": {
+                        "order_return_print_enabled": "1",
+                        "order_return_printer_type": "mobile_printer",
+                        "order_return_print_template": "5"
+                    },
+                    "pos_register": {
+                        "pos_register_print_enabled": "1",
+                        "pos_register_printer_type": "mobile_printer",
+                        "pos_register_print_template": "4"
+                    },
+                    "receipt": {
+                        "auto_print": "off",
+                        "sms_receipt": "on",
+                        "email_receipt": "on"
+                    },
+                    "quotation": {
+                        "quotation_print_enabled": "0"
+                    }
+                }
+            },
+            {
+                "id": 3,
+                "code": "PALOC3",
+                "name": "Pharmacy",
+                "type": "pharmacy",
+                "city": "Colombo",
+                "country": "Sri Lanka",
+                "latitude": null,
+                "longitude": null,
+                "default_currency": "LKR",
+                "long_address": "1A Centre Road",
+                "devices": [
+                    {
+                        "id": 3,
+                        "device_name": "Pharmacy Terminal",
+                        "serial_number": "000003",
+                        "device_status": "active",
+                        "type": "point_of_sale",
+                        "printer_type": "mobile_printer",
+                        "template_id": 1,
+                        "document_type": "html",
+                        "location_id": 3,
+                        "pos-register": {
+                            "id": 62,
+                            "user_id": 10,
+                            "created_at": "2025-12-20T04:12:10.000000Z"
+                        },
+                        "settings": {
+                            "virtual_keyboard": "on",
+                            "payment_confirmation": "on",
+                            "order_item_report": "on",
+                            "order_taxes_report": "on"
+                        },
+                        "kot_printer_type": null,
+                        "order_return_printer_type": "html",
+                        "quotation_printer_type": null,
+                        "pos_register_printer_type": "html",
+                        "ad": {
+                            "type": "video",
+                            "url": "https://csadmin.cloudpos.lk/storage/ads/01K9DAX3GG45VFFTP01C9K86NQ.mp4"
+                        },
+                        "user_id": 1,
+                        "created_at": "2025-11-06 17:39:46",
+                        "updated_at": "2025-11-07 11:26:25"
+                    }
+                ],
+                "departments": [],
+                "receipt_header": null,
+                "receipt_footer": null,
+                "custom_price": 0,
+                "loyalty_points_enabled": 1,
+                "customer_account_required": 1,
+                "location_settings": {
+                    "receipt": {
+                        "auto_print": "off",
+                        "sms_receipt": "on",
+                        "email_receipt": "on"
+                    },
+                    "kot": {
+                        "kot_enabled": "0"
+                    },
+                    "order_return": {
+                        "order_return_print_enabled": "1",
+                        "order_return_printer_type": "mobile_printer",
+                        "order_return_print_template": "5"
+                    },
+                    "pos_register": {
+                        "pos_register_print_enabled": "1",
+                        "pos_register_printer_type": "mobile_printer",
+                        "pos_register_print_template": "4"
+                    },
+                    "quotation": {
+                        "quotation_print_enabled": "0"
+                    }
+                }
+            },
+            {
+                "id": 4,
+                "code": "RELOC4",
+                "name": "Retail",
+                "type": "retail",
+                "city": "Colombo",
+                "country": "Sri Lanka",
+                "latitude": null,
+                "longitude": null,
+                "default_currency": "LKR",
+                "long_address": "1A Centre Road",
+                "devices": [
+                    {
+                        "id": 4,
+                        "device_name": "Retail Terminal",
+                        "serial_number": "000004",
+                        "device_status": "active",
+                        "type": "point_of_sale",
+                        "printer_type": "mobile_printer",
+                        "template_id": 1,
+                        "document_type": "html",
+                        "location_id": 4,
+                        "pos-register": {
+                            "id": 124,
+                            "user_id": 9,
+                            "created_at": "2026-03-24T03:38:11.000000Z"
+                        },
+                        "settings": {
+                            "virtual_keyboard": "on",
+                            "payment_confirmation": "on",
+                            "order_item_report": "on",
+                            "order_taxes_report": "on"
+                        },
+                        "kot_printer_type": null,
+                        "order_return_printer_type": "html",
+                        "quotation_printer_type": null,
+                        "pos_register_printer_type": "html",
+                        "ad": null,
+                        "user_id": 10,
+                        "created_at": "2025-11-06 18:49:37",
+                        "updated_at": "2026-02-02 13:36:04"
+                    }
+                ],
+                "departments": [],
+                "receipt_header": null,
+                "receipt_footer": null,
+                "custom_price": 1,
+                "loyalty_points_enabled": 1,
+                "customer_account_required": 1,
+                "location_settings": {
+                    "receipt": {
+                        "auto_print": "off",
+                        "sms_receipt": "on",
+                        "email_receipt": "on"
+                    },
+                    "kot": {
+                        "kot_enabled": "0"
+                    },
+                    "order_return": {
+                        "order_return_print_enabled": "1",
+                        "order_return_printer_type": "mobile_printer",
+                        "order_return_print_template": "5"
+                    },
+                    "pos_register": {
+                        "pos_register_print_enabled": "1",
+                        "pos_register_printer_type": "mobile_printer",
+                        "pos_register_print_template": "4"
+                    },
+                    "quotation": {
+                        "quotation_print_enabled": "0"
+                    }
+                }
+            },
+            {
+                "id": 5,
+                "code": "CALOC5",
+                "name": "Cafe",
+                "type": "cafe",
+                "city": "Port City Colombo",
+                "country": "Sri Lanka",
+                "latitude": 6.9299703,
+                "longitude": 79.8273613,
+                "default_currency": "LKR",
+                "long_address": "1A Centre Road",
+                "devices": [
+                    {
+                        "id": 2,
+                        "device_name": "Cafe Terminal",
+                        "serial_number": "000002",
+                        "device_status": "active",
+                        "type": "point_of_sale",
+                        "printer_type": "mobile_printer",
+                        "template_id": 1,
+                        "document_type": "html",
+                        "location_id": 5,
+                        "pos-register": {
+                            "id": 122,
+                            "user_id": 10,
+                            "created_at": "2026-03-19T03:31:11.000000Z"
+                        },
+                        "settings": {
+                            "virtual_keyboard": "on",
+                            "payment_confirmation": "on",
+                            "order_item_report": "on",
+                            "order_taxes_report": "on"
+                        },
+                        "kot_printer_type": null,
+                        "order_return_printer_type": "html",
+                        "quotation_printer_type": null,
+                        "pos_register_printer_type": "html",
+                        "ad": {
+                            "type": "video",
+                            "url": "https://csadmin.cloudpos.lk/storage/ads/01K7YXF72GZRRZADA52ZH0DTXF.mp4"
+                        },
+                        "user_id": 10,
+                        "created_at": "2025-10-20 00:24:47",
+                        "updated_at": "2026-02-02 13:36:39"
+                    }
+                ],
+                "departments": [],
+                "receipt_header": null,
+                "receipt_footer": null,
+                "custom_price": 0,
+                "loyalty_points_enabled": 1,
+                "customer_account_required": 1,
+                "location_settings": {
+                    "receipt": {
+                        "auto_print": "off",
+                        "sms_receipt": "on",
+                        "email_receipt": "on"
+                    },
+                    "kot": {
+                        "kot_enabled": "0"
+                    },
+                    "order_return": {
+                        "order_return_print_enabled": "1",
+                        "order_return_printer_type": "mobile_printer",
+                        "order_return_print_template": "5"
+                    },
+                    "pos_register": {
+                        "pos_register_print_enabled": "1",
+                        "pos_register_printer_type": "mobile_printer",
+                        "pos_register_print_template": "4"
+                    },
+                    "quotation": {
+                        "quotation_print_enabled": "0"
+                    }
+                }
+            }
+        ],
+        "business_settings": [
+            {
+                "id": 1,
+                "setting_key": "logo_url",
+                "setting_value": "https://csadmin.cloudpos.lk/storage/business_settings/01K3BTS2GCH1YPP63R4QAW60SD.png"
+            },
+            {
+                "id": 2,
+                "setting_key": "order_email_as_pdf",
+                "setting_value": true
+            },
+            {
+                "id": 3,
+                "setting_key": "permission_based_authorization",
+                "setting_value": false
+            },
+            {
+                "id": 4,
+                "setting_key": "custom_invoice_numbering",
+                "setting_value": false
+            },
+            {
+                "id": 5,
+                "setting_key": "enable_delivery_mode",
+                "setting_value": false
+            },
+            {
+                "id": 6,
+                "setting_key": "enable_future_order_scheduling",
+                "setting_value": false
+            },
+            {
+                "id": 7,
+                "setting_key": "enable_order_source",
+                "setting_value": false
+            },
+            {
+                "id": 8,
+                "setting_key": "advance_payment",
+                "setting_value": false
+            }
+        ],
+        "order_sources": [
+            {
+                "value": "shopify",
+                "short_code": "SHP",
+                "label": "Shopify"
+            },
+            {
+                "value": "woocommerce",
+                "short_code": "WOO",
+                "label": "WooCommerce"
+            },
+            {
+                "value": "other",
+                "short_code": "OTH",
+                "label": "Other"
+            },
+            {
+                "value": "pickme",
+                "short_code": "PKM",
+                "label": "PickMe"
+            },
+            {
+                "value": "pos",
+                "short_code": "POS",
+                "label": "POS"
+            },
+            {
+                "value": "web",
+                "short_code": "WEB",
+                "label": "Web"
+            },
+            {
+                "value": "general_line_call",
+                "short_code": "CALL",
+                "label": "General Line Call"
+            },
+            {
+                "value": "respondio",
+                "short_code": "RIO",
+                "label": "Respond.io"
+            },
+            {
+                "value": "walk_in_customer",
+                "short_code": "WLK",
+                "label": "Walk-in Customer"
+            }
+        ],
+        "delivery_methods": [
+            {
+                "value": "self_pickup",
+                "label": "Self Pickup"
+            },
+            {
+                "value": "in_house_delivery",
+                "label": "In-house Delivery"
+            },
+            {
+                "value": "pickme",
+                "label": "PickMe"
+            },
+            {
+                "value": "uber",
+                "label": "Uber"
+            }
+        ],
+        "future_order_types": [
+            {
+                "value": "future_day",
+                "label": "Future Day"
+            },
+            {
+                "value": "same_day",
+                "label": "Same Day"
+            }
+        ]
+    }
+}

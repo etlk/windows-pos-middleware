@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+<ItemGroup>
+ <Resource Include="Assets\logo.png" />
+</ItemGroup>
+<ItemGroup>
+  <Content Include="locations.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </Content>
+</ItemGroup>
+<ItemGroup>
+<PackageReference Include="PrintHTML.Core" Version="1.0.5" />
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+    <PackageReference Include="PusherClient" Version="2.2.1" />
+</ItemGroup>
+</Project>

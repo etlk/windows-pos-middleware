@@ -1,0 +1,105 @@
+<UserControl x:Class="MiddlewareApp.Views.BusinessCodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F5F6FA">
+
+    <Grid>
+        <Border Background="#F5F6FA">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="320">
+
+                <!-- Logo -->
+             <!-- Image -->
+    <Image Source="../Assets/logo.png"
+           Width="200"
+           Height="80"
+          Margin="0,0,0,5"
+           HorizontalAlignment="Center"/>
+
+                <!-- Greeting -->
+               <TextBlock x:Name="GreetingText"
+               FontSize="20"
+                FontWeight="SemiBold"
+                     HorizontalAlignment="Center"
+                      Margin="0,0,0,10"/>
+
+                <TextBlock Text="Please enter your business code to get started!"
+                           FontSize="12"
+                           Foreground="Gray"
+                           TextAlignment="Center"
+                           Margin="0,0,0,20"/>
+
+                <!-- Label -->
+                <TextBlock Text="Business Code"
+                           FontWeight="SemiBold"
+                           Margin="0,10,0,5"/>
+
+                <!-- Input -->
+                <Border CornerRadius="8" Background="White" BorderBrush="#DDD" BorderThickness="1">
+                    <TextBox x:Name="BusinessCodeTextBox"
+                             Height="40"
+                             Padding="10"
+                             BorderThickness="0"
+                             FontSize="14"
+                             Background="Transparent"/>
+                </Border>
+
+                <!-- Button -->
+                <Button Content="Continue"
+                        Height="42"
+                        Margin="0,20,0,10"
+                        Background="#2D6CDF"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="Continue_Click">
+
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="8">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Recent -->
+                <!-- <TextBlock Text="Recent Businesses"
+                           FontWeight="SemiBold"
+                           Margin="0,20,0,10"/> -->
+
+                <!-- Recent List -->
+                <!-- <StackPanel>
+
+                    <Border Background="White" CornerRadius="8" Padding="10" Margin="0,5">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="30" Height="30" Fill="#E0E0E0"/>
+                            <TextBlock Text=" DataInsight"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="8" Padding="10" Margin="0,5">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="30" Height="30" Fill="#E0E0E0"/>
+                            <TextBlock Text=" Super Serv"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel> -->
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
