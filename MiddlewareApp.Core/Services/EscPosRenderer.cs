@@ -46,12 +46,12 @@ public class EscPosRenderer
             switch (line)
             {
                 case TextLine t:
-                    EmitText(ms, PadLine(t.Text, t.Align, width));
+                    EmitText(ms, t, width);
                     break;
 
                 case DashLine:
                     var dashes = new string('-', Math.Min(width, MaxDashes));
-                    EmitText(ms, PadLine(dashes, LineAlign.Center, width));
+                    EmitPlainText(ms, PadLine(dashes, LineAlign.Center, width));
                     break;
 
                 case ImageLine img when includeImages:
@@ -76,7 +76,24 @@ public class EscPosRenderer
         };
     }
 
-    private static void EmitText(MemoryStream ms, string text)
+    private static void EmitText(MemoryStream ms, TextLine line, int width)
+    {
+        // Wide lines print double width+height (GS ! 0x11), so column math runs at half width.
+        var effWidth = line.Wide ? Math.Max(8, width / 2) : width;
+        var padded = PadLine(line.Text, line.Align, effWidth);
+
+        if (line.Bold) ms.Write(new byte[] { 0x1B, 0x45, 0x01 }); // ESC E 1 — bold on
+        if (line.Wide) ms.Write(new byte[] { 0x1D, 0x21, 0x11 }); // GS ! — double width + height
+
+        var bytes = Encoding.ASCII.GetBytes(Asciify(padded));
+        ms.Write(bytes, 0, bytes.Length);
+        ms.WriteByte(0x0A); // feed while the size is still active so the line advances full height
+
+        if (line.Wide) ms.Write(new byte[] { 0x1D, 0x21, 0x00 });
+        if (line.Bold) ms.Write(new byte[] { 0x1B, 0x45, 0x00 });
+    }
+
+    private static void EmitPlainText(MemoryStream ms, string text)
     {
         var bytes = Encoding.ASCII.GetBytes(Asciify(text));
         ms.Write(bytes, 0, bytes.Length);
