@@ -4,3 +4,4 @@ publish/
 installer/Output/
 *.user
 .vs/
+.DS_Store
