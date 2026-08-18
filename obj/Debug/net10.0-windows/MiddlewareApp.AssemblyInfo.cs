@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("MiddlewareApp")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Cloud POS Middleware")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("MiddlewareApp")]
-[assembly: System.Reflection.AssemblyTitleAttribute("MiddlewareApp")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8fa15c14ce8cad5261a48345a2ac11eae049cd08")]
+[assembly: System.Reflection.AssemblyProductAttribute("Cloud POS Middleware")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Cloud POS Middleware")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]

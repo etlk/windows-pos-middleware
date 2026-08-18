@@ -1,59 +1,52 @@
-# 🧰 C# Project Setup & Run Guide
+# Cloud POS Middleware (Windows)
 
-## 💻 Prerequisites
+Windows port of the Android **Cloud POS Middleware** — a system-tray print bridge for
+the Cloud POS cloud point-of-sale (`cloudpos.lk`). It links a counter PC to a
+business → branch → POS terminal, discovers LAN thermal printers (mDNS + subnet scan
+on port 9100), assigns them to the terminal and departments, and listens on a Pusher
+channel for print jobs, converting receipt HTML to ESC/POS and sending it over raw
+TCP (port 9100).
 
-### 1. Install .NET SDK
-Download and install:
-https://dotnet.microsoft.com/download
+Spec: `docs/windows-port/WINDOWS_PORT_SPEC.md` (behavior contract, screens, assets).
+Releasing: see `RELEASE.md` (push to `production` ⇒ auto-versioned GitHub Release).
 
-Verify installation:
-dotnet --version
+## Projects
 
----
+| Project | Target | Purpose |
+|---|---|---|
+| `MiddlewareApp` | `net10.0-windows` (WPF) | Tray app + 4-screen wizard UI |
+| `MiddlewareApp.Core` | `net10.0` | All logic: API client, Pusher listener, HTML→ESC/POS, print queue, discovery, agent/session persistence — cross-platform & unit-testable |
+| `MiddlewareApp.Core.Tests` | `net10.0` (xunit) | Tests for the receipt formatter, job rules, and print queue |
 
-### 2. Install Visual Studio (Recommended)
+## Prerequisites
 
-Download:
-https://visualstudio.microsoft.com/
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- Windows to **run** the app. The solution also **builds** on macOS/Linux
+  (`EnableWindowsTargeting`), and the Core tests run anywhere.
 
-During installation, select:
-- .NET Desktop Development
+## Build, test, run
 
----
+```
+dotnet build MiddlewareApp.sln
+dotnet test MiddlewareApp.Core.Tests
+dotnet run --project MiddlewareApp.csproj      # Windows only
+```
 
-## ▶️ How to Run the Project
+Start hidden in the tray (used by "Start with Windows"): `MiddlewareApp.exe --minimized`
 
-### Option 1: Using Visual Studio
+## Configuration
 
-1. Open Visual Studio  
-2. Click "Open a project or solution"  
-3. Select the `.sln` file  
-4. Build the project:
-   Ctrl + Shift + B  
-5. Run the project:
-   Ctrl + F5  
+Build-time constants live in `MiddlewareApp.Core/AppConfig.cs`
+(`BASE_DOMAIN`, `PUSHER_KEY`, `PUSHER_CLUSTER`, `PUSHER_EVENT`).
 
----
+Dev override: set `MIDDLEWARE_DEV_BASE_URL` (e.g. `http://192.168.1.50:3000`) to point
+all API calls at the Express mock server from the Android repo instead of
+`https://{businessCode}.cloudpos.lk`.
 
-### Option 2: Using Command Line
+## Behavior notes
 
-1. Open terminal or command prompt  
-2. Navigate to project folder:
-   cd project-name  
-
-3. Restore dependencies:
-   dotnet restore  
-
-4. Build project:
-   dotnet build  
-
-5. Run project:
-   dotnet run  
-
----
-
-## 🐞 Troubleshooting
-
-- Ensure .NET SDK is installed  
-- Run `dotnet restore` if packages are missing  
-- Check correct project folder before running  
+- Closing the window hides to the tray; printing continues. Quit via the tray menu.
+- The session persists in `%APPDATA%\CloudPOSMiddleware`; on relaunch the app resumes
+  listening and jumps straight to the Middleware screen.
+- "Clear all & reconfigure" clears every printer server-side, stops the listener,
+  wipes the stored session, and restarts the wizard.

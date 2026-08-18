@@ -1,0 +1,139 @@
+using System.Text;
+
+namespace MiddlewareApp.Core.Services;
+
+/// <summary>1-bit raster image, rows packed MSB-first, BytesPerRow = (Width + 7) / 8.</summary>
+public sealed class MonoImage
+{
+    public required int Width { get; init; }
+    public required int Height { get; init; }
+    public required byte[] Rows { get; init; }
+}
+
+/// <summary>Decodes an encoded image (PNG/JPG bytes) into a printable mono raster. Implemented by the app (System.Drawing).</summary>
+public interface IReceiptImageDecoder
+{
+    MonoImage? Decode(byte[] data, int maxWidthDots);
+}
+
+/// <summary>
+/// Renders formatted receipt lines to raw ESC/POS bytes (printer DPI 203, spec §5).
+/// Text alignment is baked in with spaces so output matches the Android renderer's
+/// column math exactly.
+/// </summary>
+public class EscPosRenderer
+{
+    private const int MaxDashes = 48;
+
+    private readonly IReceiptImageDecoder? _imageDecoder;
+    private readonly Func<string, Task<byte[]?>>? _imageFetcher;
+
+    public EscPosRenderer(IReceiptImageDecoder? imageDecoder = null, Func<string, Task<byte[]?>>? imageFetcher = null)
+    {
+        _imageDecoder = imageDecoder;
+        _imageFetcher = imageFetcher;
+    }
+
+    public async Task<byte[]> RenderAsync(IReadOnlyList<ReceiptLine> lines, int width, bool includeImages = true)
+    {
+        var ms = new MemoryStream();
+        void Emit(params byte[] bytes) => ms.Write(bytes, 0, bytes.Length);
+
+        Emit(0x1B, 0x40); // ESC @ — initialize
+
+        foreach (var line in lines)
+        {
+            switch (line)
+            {
+                case TextLine t:
+                    EmitText(ms, PadLine(t.Text, t.Align, width));
+                    break;
+
+                case DashLine:
+                    var dashes = new string('-', Math.Min(width, MaxDashes));
+                    EmitText(ms, PadLine(dashes, LineAlign.Center, width));
+                    break;
+
+                case ImageLine img when includeImages:
+                    await EmitImageAsync(ms, img.Url, width).ConfigureAwait(false);
+                    break;
+            }
+        }
+
+        Emit(0x1B, 0x64, 0x04); // ESC d 4 — feed so the cut clears the footer
+        Emit(0x1D, 0x56, 0x00); // GS V 0 — full cut
+        return ms.ToArray();
+    }
+
+    private static string PadLine(string text, LineAlign align, int width)
+    {
+        if (text.Length >= width) return text[..Math.Min(text.Length, width)];
+        return align switch
+        {
+            LineAlign.Center => new string(' ', (width - text.Length) / 2) + text,
+            LineAlign.Right => new string(' ', width - text.Length) + text,
+            _ => text,
+        };
+    }
+
+    private static void EmitText(MemoryStream ms, string text)
+    {
+        var bytes = Encoding.ASCII.GetBytes(Asciify(text));
+        ms.Write(bytes, 0, bytes.Length);
+        ms.WriteByte(0x0A);
+    }
+
+    /// <summary>Fold common typography to ASCII; anything else unprintable becomes '?'.</summary>
+    private static string Asciify(string text)
+    {
+        var sb = new StringBuilder(text.Length);
+        foreach (var c in text)
+        {
+            sb.Append(c switch
+            {
+                '‘' or '’' => '\'',
+                '“' or '”' => '"',
+                '–' or '—' => '-',
+                ' ' => ' ',
+                '•' => '*',
+                '×' => 'x',
+                _ when c <= 0x7E && c >= 0x20 => c,
+                _ => '?',
+            });
+        }
+        return sb.ToString();
+    }
+
+    private async Task EmitImageAsync(MemoryStream ms, string url, int width)
+    {
+        if (_imageDecoder == null || _imageFetcher == null) return;
+
+        byte[]? data;
+        try { data = await _imageFetcher(url).ConfigureAwait(false); }
+        catch { return; } // unreachable images were already dropped; a late failure just skips the logo
+
+        if (data == null || data.Length == 0) return;
+
+        // Logo scaling: same logic as the Android middleware's scaleLogoForReceipt, with the
+        // cap raised to 75% of the printable width in dots at 203 dpi (min 120, never wider
+        // than the printable area). 80 mm roll (72 mm printable, 576 dots) ⇒ ~431 dots;
+        // 58 mm roll (48 mm printable, 384 dots) ⇒ ~287 dots. Downscale only.
+        var (printWidthMm, printableDots) = width <= 32 ? (48f, 384) : (72f, 576);
+        var maxDots = (int)(printWidthMm / 25.4f * 203 * 0.75f);
+        maxDots = Math.Clamp(maxDots, 120, printableDots);
+        var mono = _imageDecoder.Decode(data, maxDots);
+        if (mono == null) return;
+
+        var bytesPerRow = (mono.Width + 7) / 8;
+        ms.Write(new byte[] { 0x1B, 0x61, 0x01 }); // ESC a 1 — center
+        ms.Write(new byte[]
+        {
+            0x1D, 0x76, 0x30, 0x00, // GS v 0 — raster bit image, normal mode
+            (byte)(bytesPerRow & 0xFF), (byte)((bytesPerRow >> 8) & 0xFF),
+            (byte)(mono.Height & 0xFF), (byte)((mono.Height >> 8) & 0xFF),
+        });
+        ms.Write(mono.Rows, 0, mono.Rows.Length);
+        ms.Write(new byte[] { 0x1B, 0x61, 0x00 }); // ESC a 0 — back to left
+        ms.WriteByte(0x0A);
+    }
+}

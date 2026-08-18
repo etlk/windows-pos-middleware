@@ -1,12 +1,11 @@
-﻿<Window x:Class="MiddlewareApp.MainWindow"
+<Window x:Class="MiddlewareApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MiddlewareApp"
-        mc:Ignorable="d"
-        Title="ET-CloudPOS-Middleware" Height="600" Width="800">
-    <Grid>
-        <ContentControl x:Name="MainContent"/>
-    </Grid>
+        Title="Cloud POS Middleware"
+        Icon="/Assets/tray-icon.png"
+        MinWidth="720" MinHeight="440"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}">
+    <ContentControl x:Name="ScreenHost" Focusable="False"/>
 </Window>

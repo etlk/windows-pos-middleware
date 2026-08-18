@@ -1,18 +1,24 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
-    "net10.0-windows7.0": {
-      "Figgle/0.5.1": {
+    "net10.0-windows": {
+      "HtmlAgilityPack/1.11.71": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/Figgle.dll": {
-            "related": ".xml"
+          "lib/netstandard2.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/Figgle.dll": {
-            "related": ".xml"
+          "lib/netstandard2.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
           }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/10.0.11": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
       "NaCl.Net/0.1.13": {
@@ -41,18 +47,133 @@
           }
         }
       },
-      "PrintHTML.Core/1.0.5": {
+      "PusherClient/2.2.1": {
         "type": "package",
         "dependencies": {
-          "Figgle": "0.5.1",
-          "QRCoder": "1.7.0",
-          "ZXing.Net": "0.16.11"
+          "NaCl.Net": "0.1.13",
+          "Newtonsoft.Json": "13.0.2",
+          "WebSocket4Net": "0.15.2"
         },
         "compile": {
-          "lib/netstandard2.0/PrintHTML.Core.dll": {}
+          "lib/netstandard2.0/PusherClient.dll": {}
         },
         "runtime": {
-          "lib/netstandard2.0/PrintHTML.Core.dll": {}
+          "lib/netstandard2.0/PusherClient.dll": {}
+        }
+      },
+      "SuperSocket.ClientEngine.Core/0.10.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard1.3/SuperSocket.ClientEngine.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.3/SuperSocket.ClientEngine.dll": {}
+        }
+      },
+      "System.Reactive/5.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/System.Reactive.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/System.Reactive.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net5.0/_._": {}
+        }
+      },
+      "WebSocket4Net/0.15.2": {
+        "type": "package",
+        "dependencies": {
+          "SuperSocket.ClientEngine.Core": "0.10.0"
+        },
+        "compile": {
+          "lib/netstandard1.3/WebSocket4Net.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.3/WebSocket4Net.dll": {}
+        }
+      },
+      "Zeroconf/3.6.11": {
+        "type": "package",
+        "dependencies": {
+          "System.Reactive": "5.0.0"
+        },
+        "compile": {
+          "lib/net6.0/Zeroconf.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Zeroconf.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MiddlewareApp.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "HtmlAgilityPack": "1.11.71",
+          "PusherClient": "2.2.1",
+          "Zeroconf": "3.6.11"
+        },
+        "compile": {
+          "bin/placeholder/MiddlewareApp.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/MiddlewareApp.Core.dll": {}
+        }
+      }
+    },
+    "net10.0-windows/win-x64": {
+      "HtmlAgilityPack/1.11.71": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/HtmlAgilityPack.dll": {
+            "related": ".deps.json;.pdb;.xml"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/10.0.11": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.NET.ILLink.Tasks.props": {}
+        }
+      },
+      "NaCl.Net/0.1.13": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/NaCl.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/NaCl.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Newtonsoft.Json/13.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
         }
       },
       "PusherClient/2.2.1": {
@@ -69,19 +190,6 @@
           "lib/netstandard2.0/PusherClient.dll": {}
         }
       },
-      "QRCoder/1.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/net6.0/QRCoder.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net6.0/QRCoder.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "SuperSocket.ClientEngine.Core/0.10.0": {
         "type": "package",
         "compile": {
@@ -89,6 +197,22 @@
         },
         "runtime": {
           "lib/netstandard1.3/SuperSocket.ClientEngine.dll": {}
+        }
+      },
+      "System.Reactive/5.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/System.Reactive.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/System.Reactive.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net5.0/_._": {}
         }
       },
       "WebSocket4Net/0.15.2": {
@@ -103,35 +227,137 @@
           "lib/netstandard1.3/WebSocket4Net.dll": {}
         }
       },
-      "ZXing.Net/0.16.11": {
+      "Zeroconf/3.6.11": {
         "type": "package",
+        "dependencies": {
+          "System.Reactive": "5.0.0"
+        },
         "compile": {
-          "lib/net9.0/zxing.dll": {
-            "related": ".XML"
+          "lib/net6.0/Zeroconf.dll": {
+            "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net9.0/zxing.dll": {
-            "related": ".XML"
+          "lib/net6.0/Zeroconf.dll": {
+            "related": ".xml"
           }
+        }
+      },
+      "MiddlewareApp.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "HtmlAgilityPack": "1.11.71",
+          "PusherClient": "2.2.1",
+          "Zeroconf": "3.6.11"
+        },
+        "compile": {
+          "bin/placeholder/MiddlewareApp.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/MiddlewareApp.Core.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "Figgle/0.5.1": {
-      "sha512": "F21k9oOGRgSb+1dCX0kFDYRBbShSMFvL49xjNmF/dsJwiN5M7zBaSWsYKpi/KZWXVIIxNzTbNTq9ZciucaHYMQ==",
+    "HtmlAgilityPack/1.11.71": {
+      "sha512": "HlEThQBnob4/29DIiyrPSYlGXXSZUtOH7571PRev+yu8FW8n5pdxqHyun+PMm17cp3ovCrxFhXedC+1HUSdRMA==",
       "type": "package",
-      "path": "figgle/0.5.1",
+      "path": "htmlagilitypack/1.11.71",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "README.md",
-        "figgle.0.5.1.nupkg.sha512",
-        "figgle.nuspec",
-        "lib/netstandard2.0/Figgle.dll",
-        "lib/netstandard2.0/Figgle.xml",
-        "logo-square-256px.png"
+        "htmlagilitypack.1.11.71.nupkg.sha512",
+        "htmlagilitypack.nuspec",
+        "lib/Net35/HtmlAgilityPack.dll",
+        "lib/Net35/HtmlAgilityPack.pdb",
+        "lib/Net35/HtmlAgilityPack.xml",
+        "lib/Net40-client/HtmlAgilityPack.dll",
+        "lib/Net40-client/HtmlAgilityPack.pdb",
+        "lib/Net40-client/HtmlAgilityPack.xml",
+        "lib/Net40/HtmlAgilityPack.XML",
+        "lib/Net40/HtmlAgilityPack.dll",
+        "lib/Net40/HtmlAgilityPack.pdb",
+        "lib/Net45/HtmlAgilityPack.XML",
+        "lib/Net45/HtmlAgilityPack.dll",
+        "lib/Net45/HtmlAgilityPack.pdb",
+        "lib/NetCore45/HtmlAgilityPack.XML",
+        "lib/NetCore45/HtmlAgilityPack.dll",
+        "lib/NetCore45/HtmlAgilityPack.pdb",
+        "lib/netstandard1.3/HtmlAgilityPack.deps.json",
+        "lib/netstandard1.3/HtmlAgilityPack.dll",
+        "lib/netstandard1.3/HtmlAgilityPack.pdb",
+        "lib/netstandard1.3/HtmlAgilityPack.xml",
+        "lib/netstandard1.6/HtmlAgilityPack.deps.json",
+        "lib/netstandard1.6/HtmlAgilityPack.dll",
+        "lib/netstandard1.6/HtmlAgilityPack.pdb",
+        "lib/netstandard1.6/HtmlAgilityPack.xml",
+        "lib/netstandard2.0/HtmlAgilityPack.deps.json",
+        "lib/netstandard2.0/HtmlAgilityPack.dll",
+        "lib/netstandard2.0/HtmlAgilityPack.pdb",
+        "lib/netstandard2.0/HtmlAgilityPack.xml",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.XML",
+        "lib/uap10.0/HtmlAgilityPack.dll",
+        "lib/uap10.0/HtmlAgilityPack.pdb",
+        "lib/uap10.0/HtmlAgilityPack.pri",
+        "readme.md"
+      ]
+    },
+    "Microsoft.NET.ILLink.Tasks/10.0.11": {
+      "sha512": "IBf7lbovvjGWVWXZX5cJ/cO0WXbId0Zq4BuSeT94mGZuOAP66oMeH9PTBZ9Jpp3Jb6jtK0qm/NyUbPRo1gC/wQ==",
+      "type": "package",
+      "path": "microsoft.net.illink.tasks/10.0.11",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "Sdk/Sdk.props",
+        "THIRD-PARTY-NOTICES.TXT",
+        "analyzers/dotnet/cs/ILLink.CodeFixProvider.dll",
+        "analyzers/dotnet/cs/ILLink.RoslynAnalyzer.dll",
+        "build/Microsoft.NET.ILLink.Analyzers.props",
+        "build/Microsoft.NET.ILLink.Tasks.props",
+        "build/Microsoft.NET.ILLink.targets",
+        "microsoft.net.illink.tasks.10.0.11.nupkg.sha512",
+        "microsoft.net.illink.tasks.nuspec",
+        "tools/net/ILLink.Tasks.deps.json",
+        "tools/net/ILLink.Tasks.dll",
+        "tools/net/Mono.Cecil.Mdb.dll",
+        "tools/net/Mono.Cecil.Pdb.dll",
+        "tools/net/Mono.Cecil.Rocks.dll",
+        "tools/net/Mono.Cecil.dll",
+        "tools/net/Sdk/Sdk.props",
+        "tools/net/build/Microsoft.NET.ILLink.Analyzers.props",
+        "tools/net/build/Microsoft.NET.ILLink.Tasks.props",
+        "tools/net/build/Microsoft.NET.ILLink.targets",
+        "tools/net/illink.deps.json",
+        "tools/net/illink.dll",
+        "tools/net/illink.runtimeconfig.json",
+        "tools/netframework/ILLink.Tasks.dll",
+        "tools/netframework/ILLink.Tasks.dll.config",
+        "tools/netframework/Mono.Cecil.Mdb.dll",
+        "tools/netframework/Mono.Cecil.Pdb.dll",
+        "tools/netframework/Mono.Cecil.Rocks.dll",
+        "tools/netframework/Mono.Cecil.dll",
+        "tools/netframework/Sdk/Sdk.props",
+        "tools/netframework/System.Buffers.dll",
+        "tools/netframework/System.Collections.Immutable.dll",
+        "tools/netframework/System.Memory.dll",
+        "tools/netframework/System.Numerics.Vectors.dll",
+        "tools/netframework/System.Reflection.Metadata.dll",
+        "tools/netframework/System.Runtime.CompilerServices.Unsafe.dll",
+        "tools/netframework/build/Microsoft.NET.ILLink.Analyzers.props",
+        "tools/netframework/build/Microsoft.NET.ILLink.Tasks.props",
+        "tools/netframework/build/Microsoft.NET.ILLink.targets",
+        "useSharedDesignerContext.txt"
       ]
     },
     "NaCl.Net/0.1.13": {
@@ -185,20 +411,6 @@
         "packageIcon.png"
       ]
     },
-    "PrintHTML.Core/1.0.5": {
-      "sha512": "Cdjl/EJlYLsSs8qtAGwwebXcLhp8vV4KghAEFTUsYM4BqqXgjtr94IyR+iI5dLdm9ZGhXf6ZKShOJEUAS56zbw==",
-      "type": "package",
-      "path": "printhtml.core/1.0.5",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "lib/net471/PrintHTML.Core.dll",
-        "lib/netstandard2.0/PrintHTML.Core.dll",
-        "printhtml.core.1.0.5.nupkg.sha512",
-        "printhtml.core.nuspec"
-      ]
-    },
     "PusherClient/2.2.1": {
       "sha512": "a7Ms+lozdwIJDgsreMt79dqpr1kCQ1j+rOaA3PlV5zxynPGpucIfxY86wM0uRbwx1GJeHbuwfvXBf27FF7yr9g==",
       "type": "package",
@@ -214,33 +426,6 @@
         "lib/netstandard2.0/PusherClient.dll",
         "pusherclient.2.2.1.nupkg.sha512",
         "pusherclient.nuspec"
-      ]
-    },
-    "QRCoder/1.7.0": {
-      "sha512": "6R3hQkayihGIDjp3F1nLRDBWG+nqahGyOY2+fH4Rll16Vad67oaUUfHkOiMWKiJFnGh+PIGDfUos+0R9m54O1g==",
-      "type": "package",
-      "path": "qrcoder/1.7.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "lib/net35/QRCoder.dll",
-        "lib/net35/QRCoder.xml",
-        "lib/net40/QRCoder.dll",
-        "lib/net40/QRCoder.xml",
-        "lib/net5.0/QRCoder.dll",
-        "lib/net5.0/QRCoder.xml",
-        "lib/net6.0/QRCoder.dll",
-        "lib/net6.0/QRCoder.xml",
-        "lib/netstandard1.3/QRCoder.dll",
-        "lib/netstandard1.3/QRCoder.xml",
-        "lib/netstandard2.0/QRCoder.dll",
-        "lib/netstandard2.0/QRCoder.xml",
-        "lib/netstandard2.1/QRCoder.dll",
-        "lib/netstandard2.1/QRCoder.xml",
-        "nuget-icon.png",
-        "qrcoder.1.7.0.nupkg.sha512",
-        "qrcoder.nuspec"
       ]
     },
     "SuperSocket.ClientEngine.Core/0.10.0": {
@@ -260,6 +445,35 @@
         "supersocket.clientengine.core.nuspec"
       ]
     },
+    "System.Reactive/5.0.0": {
+      "sha512": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ==",
+      "type": "package",
+      "path": "system.reactive/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/net5.0/_._",
+        "build/netcoreapp3.1/System.Reactive.dll",
+        "build/netcoreapp3.1/System.Reactive.targets",
+        "build/netcoreapp3.1/System.Reactive.xml",
+        "buildTransitive/net5.0/_._",
+        "buildTransitive/netcoreapp3.1/System.Reactive.targets",
+        "lib/net472/System.Reactive.dll",
+        "lib/net472/System.Reactive.xml",
+        "lib/net5.0-windows10.0.19041/System.Reactive.dll",
+        "lib/net5.0-windows10.0.19041/System.Reactive.xml",
+        "lib/net5.0/System.Reactive.dll",
+        "lib/net5.0/System.Reactive.xml",
+        "lib/netcoreapp3.1/_._",
+        "lib/netstandard2.0/System.Reactive.dll",
+        "lib/netstandard2.0/System.Reactive.xml",
+        "lib/uap10.0.16299/System.Reactive.dll",
+        "lib/uap10.0.16299/System.Reactive.pri",
+        "lib/uap10.0.16299/System.Reactive.xml",
+        "system.reactive.5.0.0.nupkg.sha512",
+        "system.reactive.nuspec"
+      ]
+    },
     "WebSocket4Net/0.15.2": {
       "sha512": "xu6NiIDP6BEwO8cgXLUdWI8teB/TxVjzMjMYE7hcP93+MpZdxzDzz1cTFxU4OWVP0NESchcQO5LkiJ/wgB03AQ==",
       "type": "package",
@@ -276,115 +490,51 @@
         "websocket4net.nuspec"
       ]
     },
-    "ZXing.Net/0.16.11": {
-      "sha512": "OZfAVu88hl87BffQ+rlWCj/vLvAhhCK4QnFaoveeF/MY8SjHNSYBQ3qyUEWlPKNgBQGh1syXhCDg10vUnCsqkg==",
+    "Zeroconf/3.6.11": {
+      "sha512": "U8/BB0HjLTKEbxLyiS/u0lPGXuxHVPBQswCw4VKzxzBKcJD4e56JXKOThZEapXo8YeANsKqgxMxLRrHTHZY/8Q==",
       "type": "package",
-      "path": "zxing.net/0.16.11",
+      "path": "zeroconf/3.6.11",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "docs/README.md",
-        "lib/native/zxing.XML",
-        "lib/native/zxing.pri",
-        "lib/native/zxing.winmd",
-        "lib/net20-cf/zxing.ce2.0.dll",
-        "lib/net20-cf/zxing.ce2.0.xml",
-        "lib/net20/zxing.XML",
-        "lib/net20/zxing.dll",
-        "lib/net35-cf/zxing.ce3.5.dll",
-        "lib/net35-cf/zxing.ce3.5.xml",
-        "lib/net35/zxing.XML",
-        "lib/net35/zxing.dll",
-        "lib/net40/zxing.XML",
-        "lib/net40/zxing.dll",
-        "lib/net40/zxing.presentation.XML",
-        "lib/net40/zxing.presentation.dll",
-        "lib/net45/zxing.XML",
-        "lib/net45/zxing.dll",
-        "lib/net45/zxing.presentation.XML",
-        "lib/net45/zxing.presentation.dll",
-        "lib/net461/zxing.XML",
-        "lib/net461/zxing.dll",
-        "lib/net461/zxing.presentation.XML",
-        "lib/net461/zxing.presentation.dll",
-        "lib/net47/zxing.XML",
-        "lib/net47/zxing.dll",
-        "lib/net47/zxing.presentation.XML",
-        "lib/net47/zxing.presentation.dll",
-        "lib/net48/zxing.XML",
-        "lib/net48/zxing.dll",
-        "lib/net48/zxing.presentation.XML",
-        "lib/net48/zxing.presentation.dll",
-        "lib/net5.0/zxing.XML",
-        "lib/net5.0/zxing.dll",
-        "lib/net6.0/zxing.XML",
-        "lib/net6.0/zxing.dll",
-        "lib/net7.0/zxing.XML",
-        "lib/net7.0/zxing.dll",
-        "lib/net8.0/zxing.XML",
-        "lib/net8.0/zxing.dll",
-        "lib/net9.0/zxing.XML",
-        "lib/net9.0/zxing.dll",
-        "lib/netcoreapp3.0/zxing.dll",
-        "lib/netcoreapp3.0/zxing.xml",
-        "lib/netcoreapp3.1/zxing.dll",
-        "lib/netcoreapp3.1/zxing.xml",
-        "lib/netstandard1.0/zxing.dll",
-        "lib/netstandard1.0/zxing.xml",
-        "lib/netstandard1.1/zxing.dll",
-        "lib/netstandard1.1/zxing.xml",
-        "lib/netstandard1.3/zxing.dll",
-        "lib/netstandard1.3/zxing.xml",
-        "lib/netstandard2.0/zxing.dll",
-        "lib/netstandard2.0/zxing.xml",
-        "lib/netstandard2.1/zxing.dll",
-        "lib/netstandard2.1/zxing.xml",
-        "lib/portable-win+net40+sl4+sl5+wp7+wp71+wp8/zxing.portable.XML",
-        "lib/portable-win+net40+sl4+sl5+wp7+wp71+wp8/zxing.portable.dll",
-        "lib/sl3-wp/zxing.wp7.0.XML",
-        "lib/sl3-wp/zxing.wp7.0.dll",
-        "lib/sl4-wp71/zxing.wp7.1.XML",
-        "lib/sl4-wp71/zxing.wp7.1.dll",
-        "lib/sl4/zxing.sl4.XML",
-        "lib/sl4/zxing.sl4.dll",
-        "lib/sl5/zxing.sl5.XML",
-        "lib/sl5/zxing.sl5.dll",
-        "lib/uap10/zxing.dll",
-        "lib/uap10/zxing.pri",
-        "lib/uap10/zxing.xml",
-        "lib/windows8-managed/zxing.winrt.XML",
-        "lib/windows8-managed/zxing.winrt.dll",
-        "lib/windows8/zxing.XML",
-        "lib/windows8/zxing.pri",
-        "lib/windows8/zxing.winmd",
-        "lib/wp8/zxing.wp8.0.XML",
-        "lib/wp8/zxing.wp8.0.dll",
-        "logo.jpg",
-        "zxing.net.0.16.11.nupkg.sha512",
-        "zxing.net.nuspec"
+        "lib/net48/Zeroconf.dll",
+        "lib/net48/Zeroconf.xml",
+        "lib/net6.0/Zeroconf.dll",
+        "lib/net6.0/Zeroconf.xml",
+        "lib/netstandard2.0/Zeroconf.dll",
+        "lib/netstandard2.0/Zeroconf.xml",
+        "lib/xamarinios10/Zeroconf.dll",
+        "lib/xamarinios10/Zeroconf.xml",
+        "zeroconf.3.6.11.nupkg.sha512",
+        "zeroconf.nuspec"
       ]
+    },
+    "MiddlewareApp.Core/1.0.0": {
+      "type": "project",
+      "path": "MiddlewareApp.Core/MiddlewareApp.Core.csproj",
+      "msbuildProject": "MiddlewareApp.Core/MiddlewareApp.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
-    "net10.0-windows7.0": [
-      "PrintHTML.Core >= 1.0.5",
-      "PusherClient >= 2.2.1"
+    "net10.0-windows": [
+      "Microsoft.NET.ILLink.Tasks >= 10.0.11",
+      "MiddlewareApp.Core >= 1.0.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\User\\.nuget\\packages\\": {}
+    "/Users/dulainrajapakse/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\MiddlewareApp\\MiddlewareApp.csproj",
-      "projectName": "MiddlewareApp",
-      "projectPath": "E:\\MiddlewareApp\\MiddlewareApp.csproj",
-      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "E:\\MiddlewareApp\\obj\\",
+      "projectUniqueName": "/Users/dulainrajapakse/Desktop/Projects/windows-pos-middleware/MiddlewareApp.csproj",
+      "projectName": "Cloud POS Middleware",
+      "projectPath": "/Users/dulainrajapakse/Desktop/Projects/windows-pos-middleware/MiddlewareApp.csproj",
+      "packagesPath": "/Users/dulainrajapakse/.nuget/packages/",
+      "outputPath": "/Users/dulainrajapakse/Desktop/Projects/windows-pos-middleware/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/Users/dulainrajapakse/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"
@@ -393,9 +543,14 @@
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net10.0-windows7.0": {
+        "net10.0-windows": {
+          "framework": "net10.0-windows7.0",
           "targetAlias": "net10.0-windows",
-          "projectReferences": {}
+          "projectReferences": {
+            "/Users/dulainrajapakse/Desktop/Projects/windows-pos-middleware/MiddlewareApp.Core/MiddlewareApp.Core.csproj": {
+              "projectPath": "/Users/dulainrajapakse/Desktop/Projects/windows-pos-middleware/MiddlewareApp.Core/MiddlewareApp.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -408,19 +563,18 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.400"
     },
     "frameworks": {
-      "net10.0-windows7.0": {
+      "net10.0-windows": {
+        "framework": "net10.0-windows7.0",
         "targetAlias": "net10.0-windows",
         "dependencies": {
-          "PrintHTML.Core": {
+          "Microsoft.NET.ILLink.Tasks": {
+            "suppressParent": "All",
             "target": "Package",
-            "version": "[1.0.5, )"
-          },
-          "PusherClient": {
-            "target": "Package",
-            "version": "[2.2.1, )"
+            "version": "[10.0.11, )",
+            "autoReferenced": true
           }
         },
         "imports": [
@@ -434,25 +588,44 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+            "version": "[10.0.11, 10.0.11]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[10.0.11, 10.0.11]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Runtime.win-x64",
+            "version": "[10.0.11, 10.0.11]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[10.0.11, 10.0.11]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+            "version": "[10.0.11, 10.0.11]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           },
-          "Microsoft.WindowsDesktop.App.WindowsForms": {
-            "privateAssets": "none"
-          },
-          "Microsoft.WindowsDesktop.App.WPF": {
+          "Microsoft.WindowsDesktop.App": {
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/Users/dulainrajapakse/.dotnet/sdk/10.0.400/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
           "Microsoft.Win32.Primitives": "(,4.3.32767]",
           "Microsoft.Win32.Registry": "(,5.0.32767]",
-          "Microsoft.Win32.Registry.AccessControl": "(,10.0.32767]",
-          "Microsoft.Win32.SystemEvents": "(,10.0.32767]",
+          "Microsoft.Win32.Registry.AccessControl": "(,9.0.32767]",
+          "Microsoft.Win32.SystemEvents": "(,9.0.32767]",
           "runtime.any.System.Collections": "(,4.3.32767]",
           "runtime.any.System.Diagnostics.Tools": "(,4.3.32767]",
           "runtime.any.System.Diagnostics.Tracing": "(,4.3.32767]",
@@ -593,7 +766,7 @@
           "runtime.win8-arm.runtime.native.System.IO.Compression": "(,4.3.32767]",
           "System.AppContext": "(,4.3.32767]",
           "System.Buffers": "(,5.0.32767]",
-          "System.CodeDom": "(,10.0.32767]",
+          "System.CodeDom": "(,9.0.32767]",
           "System.Collections": "(,4.3.32767]",
           "System.Collections.Concurrent": "(,4.3.32767]",
           "System.Collections.Immutable": "(,10.0.32767]",
@@ -604,28 +777,27 @@
           "System.ComponentModel.EventBasedAsync": "(,4.3.32767]",
           "System.ComponentModel.Primitives": "(,4.3.32767]",
           "System.ComponentModel.TypeConverter": "(,4.3.32767]",
-          "System.Configuration.ConfigurationManager": "(,10.0.32767]",
+          "System.Configuration.ConfigurationManager": "(,9.0.32767]",
           "System.Console": "(,4.3.32767]",
           "System.Data.Common": "(,4.3.32767]",
           "System.Data.DataSetExtensions": "(,4.4.32767]",
           "System.Diagnostics.Contracts": "(,4.3.32767]",
           "System.Diagnostics.Debug": "(,4.3.32767]",
           "System.Diagnostics.DiagnosticSource": "(,10.0.32767]",
-          "System.Diagnostics.EventLog": "(,10.0.32767]",
+          "System.Diagnostics.EventLog": "(,9.0.32767]",
           "System.Diagnostics.FileVersionInfo": "(,4.3.32767]",
-          "System.Diagnostics.PerformanceCounter": "(,10.0.32767]",
+          "System.Diagnostics.PerformanceCounter": "(,9.0.32767]",
           "System.Diagnostics.Process": "(,4.3.32767]",
           "System.Diagnostics.StackTrace": "(,4.3.32767]",
           "System.Diagnostics.TextWriterTraceListener": "(,4.3.32767]",
           "System.Diagnostics.Tools": "(,4.3.32767]",
           "System.Diagnostics.TraceSource": "(,4.3.32767]",
           "System.Diagnostics.Tracing": "(,4.3.32767]",
-          "System.DirectoryServices": "(,10.0.32767]",
-          "System.Drawing.Common": "(,10.0.32767]",
+          "System.DirectoryServices": "(,9.0.32767]",
+          "System.Drawing.Common": "(,9.0.32767]",
           "System.Drawing.Primitives": "(,4.3.32767]",
           "System.Dynamic.Runtime": "(,4.3.32767]",
           "System.Formats.Asn1": "(,10.0.32767]",
-          "System.Formats.Nrbf": "(,10.0.32767]",
           "System.Formats.Tar": "(,10.0.32767]",
           "System.Globalization": "(,4.3.32767]",
           "System.Globalization.Calendars": "(,4.3.32767]",
@@ -640,7 +812,7 @@
           "System.IO.FileSystem.Watcher": "(,4.3.32767]",
           "System.IO.IsolatedStorage": "(,4.3.32767]",
           "System.IO.MemoryMappedFiles": "(,4.3.32767]",
-          "System.IO.Packaging": "(,10.0.32767]",
+          "System.IO.Packaging": "(,9.0.32767]",
           "System.IO.Pipelines": "(,10.0.32767]",
           "System.IO.Pipes": "(,4.3.32767]",
           "System.IO.Pipes.AccessControl": "(,5.0.32767]",
@@ -677,7 +849,7 @@
           "System.Reflection.Metadata": "(,10.0.32767]",
           "System.Reflection.Primitives": "(,4.3.32767]",
           "System.Reflection.TypeExtensions": "(,4.3.32767]",
-          "System.Resources.Extensions": "(,10.0.32767]",
+          "System.Resources.Extensions": "(,9.0.32767]",
           "System.Resources.Reader": "(,4.3.32767]",
           "System.Resources.ResourceManager": "(,4.3.32767]",
           "System.Resources.Writer": "(,4.3.32767]",
@@ -701,12 +873,12 @@
           "System.Security.Cryptography.Csp": "(,4.3.32767]",
           "System.Security.Cryptography.Encoding": "(,4.3.32767]",
           "System.Security.Cryptography.OpenSsl": "(,5.0.32767]",
-          "System.Security.Cryptography.Pkcs": "(,10.0.32767]",
+          "System.Security.Cryptography.Pkcs": "(,9.0.32767]",
           "System.Security.Cryptography.Primitives": "(,4.3.32767]",
-          "System.Security.Cryptography.ProtectedData": "(,10.0.32767]",
+          "System.Security.Cryptography.ProtectedData": "(,9.0.32767]",
           "System.Security.Cryptography.X509Certificates": "(,4.3.32767]",
-          "System.Security.Cryptography.Xml": "(,10.0.32767]",
-          "System.Security.Permissions": "(,10.0.32767]",
+          "System.Security.Cryptography.Xml": "(,9.0.32767]",
+          "System.Security.Permissions": "(,9.0.32767]",
           "System.Security.Principal": "(,4.3.32767]",
           "System.Security.Principal.Windows": "(,5.0.32767]",
           "System.Security.SecureString": "(,4.3.32767]",
@@ -728,7 +900,7 @@
           "System.Threading.ThreadPool": "(,4.3.32767]",
           "System.Threading.Timer": "(,4.3.32767]",
           "System.ValueTuple": "(,4.5.32767]",
-          "System.Windows.Extensions": "(,10.0.32767]",
+          "System.Windows.Extensions": "(,9.0.32767]",
           "System.Xml.ReaderWriter": "(,4.3.32767]",
           "System.Xml.XDocument": "(,4.3.32767]",
           "System.Xml.XmlDocument": "(,4.3.32767]",
@@ -736,6 +908,11 @@
           "System.Xml.XPath": "(,4.3.32767]",
           "System.Xml.XPath.XDocument": "(,5.0.32767]"
         }
+      }
+    },
+    "runtimes": {
+      "win-x64": {
+        "#import": []
       }
     }
   }

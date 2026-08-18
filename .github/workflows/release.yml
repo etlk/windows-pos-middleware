@@ -1,0 +1,70 @@
+name: Release
+
+# Every push to the `production` branch cuts a release:
+# auto-bumps the version (see RELEASE.md), tags it, runs the tests,
+# builds the installer + portable zip, and publishes a GitHub Release.
+on:
+  push:
+    branches: ["production"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags for version bumping
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Compute next version
+        shell: pwsh
+        run: |
+          git fetch --tags --quiet
+          $latest = git tag --list 'v*' --sort=-v:refname | Select-Object -First 1
+          if (-not $latest) {
+            $version = '1.0.0'
+          } else {
+            $parts = $latest.TrimStart('v').Split('.')
+            [int]$maj = $parts[0]; [int]$min = $parts[1]; [int]$pat = $parts[2]
+            $log = (git log "$latest..HEAD" --pretty="%s %b") -join "`n"
+            if ($log -match '#major')     { $maj++; $min = 0; $pat = 0 }
+            elseif ($log -match '#minor') { $min++; $pat = 0 }
+            else                          { $pat++ }
+            $version = "$maj.$min.$pat"
+          }
+          echo "Releasing v$version (previous: $latest)"
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Run unit tests
+        run: dotnet test MiddlewareApp.Core.Tests/MiddlewareApp.Core.Tests.csproj -c Release
+
+      - name: Publish self-contained win-x64 build
+        run: dotnet publish MiddlewareApp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/win-x64
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress; }
+          & $iscc /DAppVersion=$env:VERSION installer\CloudPOSMiddleware.iss
+
+      - name: Zip portable build
+        shell: pwsh
+        run: Compress-Archive -Path publish/win-x64/* -DestinationPath "CloudPOS-Middleware-win-x64-$env:VERSION.zip"
+
+      - name: Create GitHub Release (tags the current commit)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          files: |
+            installer/Output/CloudPOS-Middleware-Setup-*.exe
+            CloudPOS-Middleware-win-x64-*.zip
+          generate_release_notes: true

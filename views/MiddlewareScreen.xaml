@@ -1,0 +1,131 @@
+<UserControl x:Class="MiddlewareApp.Views.MiddlewareScreen"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MiddlewareApp.Views.Controls"
+             Background="{StaticResource BgBrush}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left: branding, status, scan, actions -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30,20" MaxWidth="420">
+                <Image Source="pack://application:,,,/Assets/brand.png"
+                       Width="180" Height="60" Stretch="Uniform"
+                       HorizontalAlignment="Center" Margin="0,4,0,18"/>
+
+                <!-- Connection badge (print-config GET success) -->
+                <Border Style="{StaticResource Pill}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="ConnDot" Width="8" Height="8" VerticalAlignment="Center"
+                                 Fill="{StaticResource DangerBrush}"/>
+                        <TextBlock x:Name="ConnText" FontSize="13" FontWeight="SemiBold"
+                                   Margin="8,0,0,0" Foreground="{StaticResource DangerBrush}"
+                                   Text="Connecting…"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Print-agent banner (Pusher listener state) -->
+                <Border Style="{StaticResource Pill}" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse x:Name="ListenerDot" Width="8" Height="8" VerticalAlignment="Center"
+                                 Fill="{StaticResource DangerBrush}"/>
+                        <TextBlock x:Name="ListenerText" FontSize="13" FontWeight="SemiBold"
+                                   Margin="8,0,0,0" Foreground="{StaticResource TextBrush}"
+                                   Text="Print listener OFF"/>
+                        <controls:Spinner x:Name="ListenerSpinner" Width="13" Height="13"
+                                          Margin="8,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Margin="2,8,0,0">
+                    <TextBlock x:Name="ChannelText" FontSize="12" Visibility="Collapsed"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="LastJobText" FontSize="12" Visibility="Collapsed"
+                               Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
+                    <CheckBox x:Name="AutoStartCheck" Content="Start with Windows" FontSize="12"
+                              Foreground="{StaticResource PrimaryBrush}" Margin="0,6,0,0"
+                              Checked="AutoStart_Toggled" Unchecked="AutoStart_Toggled"/>
+                </StackPanel>
+
+                <!-- Breadcrumb -->
+                <TextBlock x:Name="Breadcrumb" FontSize="13" Margin="2,14,0,0"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+
+                <StackPanel x:Name="LeftActionsPanel" Visibility="Collapsed">
+                    <!-- Scan bar -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0" Padding="14,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <controls:Spinner x:Name="ScanSpinner" Width="14" Height="14"
+                                                  VerticalAlignment="Center"/>
+                                <Ellipse x:Name="ScanDot" Width="8" Height="8" Visibility="Collapsed"
+                                         Fill="{StaticResource SuccessBrush}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="ScanText" FontSize="12" Margin="8,0,0,0"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           VerticalAlignment="Center" TextWrapping="Wrap"
+                                           Text="Scanning mDNS + subnet (port 9100)…"/>
+                            </StackPanel>
+                            <Button x:Name="RescanButton" Grid.Column="1" Style="{StaticResource LinkButton}"
+                                    Content="Re-scan" Visibility="Collapsed" Click="Rescan_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <Button x:Name="ClearAllButton" Style="{StaticResource DangerButton}"
+                            Margin="0,20,0,0" Click="ClearAll_Click">
+                        <Grid>
+                            <TextBlock x:Name="ClearAllLabel" Text="Clear all &amp; reconfigure"/>
+                            <controls:Spinner x:Name="ClearAllSpinner" Width="18" Height="18"
+                                              Color="White" Visibility="Collapsed"/>
+                        </Grid>
+                    </Button>
+
+                    <Button Style="{StaticResource BackButton}" Content="‹ Back"
+                            Margin="0,10,0,0" Click="Back_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Right: printer configuration -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="10,20,30,20" MaxWidth="480">
+
+                <controls:Spinner x:Name="FirstLoadSpinner" Width="40" Height="40"
+                                  HorizontalAlignment="Center" Margin="0,80,0,80"/>
+
+                <StackPanel x:Name="ContentPanel" Visibility="Collapsed">
+
+                    <TextBlock Style="{StaticResource SectionHeading}" Margin="0,2,0,2"
+                               Text="Assigned printers"/>
+                    <TextBlock Style="{StaticResource SectionDesc}" Margin="0,0,0,10"
+                               Text="Terminal and department printers used for print jobs."/>
+                    <Border Style="{StaticResource Card}" Padding="16,4">
+                        <StackPanel x:Name="OverviewRows"/>
+                    </Border>
+
+                    <TextBlock x:Name="TerminalHeading" Style="{StaticResource SectionHeading}"
+                               Margin="0,24,0,2"/>
+                    <TextBlock Style="{StaticResource SectionDesc}" Margin="0,0,0,10"
+                               Text="Full receipt printer for orders done at this terminal."/>
+                    <ContentControl x:Name="DeviceCardHost" Focusable="False"/>
+
+                    <StackPanel x:Name="DepartmentsSection" Visibility="Collapsed">
+                        <TextBlock Style="{StaticResource SectionHeading}" Margin="0,12,0,2"
+                                   Text="Departments"/>
+                        <TextBlock Style="{StaticResource SectionDesc}" Margin="0,0,0,10"
+                                   Text="Kitchen / station printers routed by department_id."/>
+                        <StackPanel x:Name="DeptCardsPanel"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
