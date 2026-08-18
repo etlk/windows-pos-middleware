@@ -6,13 +6,14 @@ namespace MiddlewareApp.Services;
 
 /// <summary>
 /// Decodes receipt logo images (PNG/JPG bytes) into a 1-bit raster for ESC/POS
-/// GS v 0, scaled down to the printable width.
+/// GS v 0, scaled to the template's requested width when given, otherwise
+/// only scaled down to the printable-width cap.
 /// </summary>
 public class DrawingImageDecoder : IReceiptImageDecoder
 {
     private const double LuminanceThreshold = 160;
 
-    public MonoImage? Decode(byte[] data, int maxWidthDots)
+    public MonoImage? Decode(byte[] data, int targetWidthDots, bool exactWidth)
     {
         try
         {
@@ -21,10 +22,10 @@ public class DrawingImageDecoder : IReceiptImageDecoder
 
             var width = source.Width;
             var height = source.Height;
-            if (width > maxWidthDots)
+            if (exactWidth ? width != targetWidthDots : width > targetWidthDots)
             {
-                height = Math.Max(1, (int)Math.Round(height * (double)maxWidthDots / width));
-                width = maxWidthDots;
+                height = Math.Max(1, (int)Math.Round(height * (double)targetWidthDots / width));
+                width = targetWidthDots;
             }
 
             using var bitmap = width == source.Width && height == source.Height

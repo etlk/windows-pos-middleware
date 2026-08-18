@@ -13,7 +13,11 @@ public sealed class MonoImage
 /// <summary>Decodes an encoded image (PNG/JPG bytes) into a printable mono raster. Implemented by the app (System.Drawing).</summary>
 public interface IReceiptImageDecoder
 {
-    MonoImage? Decode(byte[] data, int maxWidthDots);
+    /// <summary>
+    /// exactWidth scales to targetWidthDots in both directions (the template asked
+    /// for that width); otherwise targetWidthDots is only a downscale cap.
+    /// </summary>
+    MonoImage? Decode(byte[] data, int targetWidthDots, bool exactWidth);
 }
 
 /// <summary>
@@ -55,7 +59,7 @@ public class EscPosRenderer
                     break;
 
                 case ImageLine img when includeImages:
-                    await EmitImageAsync(ms, img.Url, width).ConfigureAwait(false);
+                    await EmitImageAsync(ms, img, width).ConfigureAwait(false);
                     break;
             }
         }
@@ -121,24 +125,37 @@ public class EscPosRenderer
         return sb.ToString();
     }
 
-    private async Task EmitImageAsync(MemoryStream ms, string url, int width)
+    private async Task EmitImageAsync(MemoryStream ms, ImageLine img, int width)
     {
         if (_imageDecoder == null || _imageFetcher == null) return;
 
         byte[]? data;
-        try { data = await _imageFetcher(url).ConfigureAwait(false); }
+        try { data = await _imageFetcher(img.Url).ConfigureAwait(false); }
         catch { return; } // unreachable images were already dropped; a late failure just skips the logo
 
         if (data == null || data.Length == 0) return;
 
-        // Logo scaling: same logic as the Android middleware's scaleLogoForReceipt, with the
-        // cap raised to 75% of the printable width in dots at 203 dpi (min 120, never wider
-        // than the printable area). 80 mm roll (72 mm printable, 576 dots) ⇒ ~431 dots;
-        // 58 mm roll (48 mm printable, 384 dots) ⇒ ~287 dots. Downscale only.
         var (printWidthMm, printableDots) = width <= 32 ? (48f, 384) : (72f, 576);
-        var maxDots = (int)(printWidthMm / 25.4f * 203 * 0.75f);
-        maxDots = Math.Clamp(maxDots, 120, printableDots);
-        var mono = _imageDecoder.Decode(data, maxDots);
+        int targetDots;
+        var exact = false;
+        if (img.WidthPx is int widthPx && widthPx > 0)
+        {
+            // The template specified the logo width. CSS px print at 96 dpi, the
+            // printer runs 203 dpi, so scale to exactly widthPx × 203/96 dots
+            // (clamped to something visible and to the printable area).
+            targetDots = Math.Clamp((int)Math.Round(widthPx * 203.0 / 96.0), 60, printableDots);
+            exact = true;
+        }
+        else
+        {
+            // No width in the HTML: same logic as the Android middleware's
+            // scaleLogoForReceipt, capped at 75% of the printable width in dots at
+            // 203 dpi (min 120). 80 mm roll (72 mm printable, 576 dots) ⇒ ~431 dots;
+            // 58 mm roll (48 mm printable, 384 dots) ⇒ ~287 dots. Downscale only.
+            targetDots = (int)(printWidthMm / 25.4f * 203 * 0.75f);
+            targetDots = Math.Clamp(targetDots, 120, printableDots);
+        }
+        var mono = _imageDecoder.Decode(data, targetDots, exact);
         if (mono == null) return;
 
         var bytesPerRow = (mono.Width + 7) / 8;

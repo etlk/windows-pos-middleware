@@ -53,4 +53,52 @@ public class EscPosRendererTests
         Assert.False(ContainsSequence(bytes, BoldOn));
         Assert.False(ContainsSequence(bytes, DoubleSize));
     }
+
+    private sealed class CapturingDecoder : IReceiptImageDecoder
+    {
+        public int? TargetWidthDots;
+        public bool? ExactWidth;
+
+        public MonoImage? Decode(byte[] data, int targetWidthDots, bool exactWidth)
+        {
+            TargetWidthDots = targetWidthDots;
+            ExactWidth = exactWidth;
+            return new MonoImage { Width = 8, Height = 1, Rows = new byte[] { 0xFF } };
+        }
+    }
+
+    [Fact]
+    public async Task Image_WithTemplateWidth_ScalesToExactDots()
+    {
+        var decoder = new CapturingDecoder();
+        var renderer = new EscPosRenderer(decoder, _ => Task.FromResult<byte[]?>(new byte[] { 1 }));
+        await renderer.RenderAsync(new ReceiptLine[] { new ImageLine("https://x/logo.png", WidthPx: 150) }, 48);
+
+        // 150 CSS px (96 dpi) → 317 printer dots (203 dpi), scaled exactly.
+        Assert.Equal(317, decoder.TargetWidthDots);
+        Assert.True(decoder.ExactWidth);
+    }
+
+    [Fact]
+    public async Task Image_WithoutTemplateWidth_UsesDownscaleCap()
+    {
+        var decoder = new CapturingDecoder();
+        var renderer = new EscPosRenderer(decoder, _ => Task.FromResult<byte[]?>(new byte[] { 1 }));
+        await renderer.RenderAsync(new ReceiptLine[] { new ImageLine("https://x/logo.png") }, 48);
+
+        // 75% of the 72 mm printable width at 203 dpi, downscale-only.
+        Assert.Equal(431, decoder.TargetWidthDots);
+        Assert.False(decoder.ExactWidth);
+    }
+
+    [Fact]
+    public async Task Image_TemplateWiderThanPrintableArea_ClampsToPrintableDots()
+    {
+        var decoder = new CapturingDecoder();
+        var renderer = new EscPosRenderer(decoder, _ => Task.FromResult<byte[]?>(new byte[] { 1 }));
+        await renderer.RenderAsync(new ReceiptLine[] { new ImageLine("https://x/logo.png", WidthPx: 800) }, 48);
+
+        Assert.Equal(576, decoder.TargetWidthDots);
+        Assert.True(decoder.ExactWidth);
+    }
 }

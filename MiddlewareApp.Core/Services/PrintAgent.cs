@@ -46,7 +46,8 @@ public class PrintAgent
 
     private sealed class LazyDecoder : IReceiptImageDecoder
     {
-        public MonoImage? Decode(byte[] data, int maxWidthDots) => ImageDecoder?.Decode(data, maxWidthDots);
+        public MonoImage? Decode(byte[] data, int targetWidthDots, bool exactWidth) =>
+            ImageDecoder?.Decode(data, targetWidthDots, exactWidth);
     }
 
     public async Task StartAsync(AgentSession session, AgentConfigs configs)

@@ -17,8 +17,8 @@ public sealed record TextLine(string Text, LineAlign Align, bool Bold = false, b
 /// <summary>Full-width dash separator (max 48 dashes, centered).</summary>
 public sealed record DashLine : ReceiptLine;
 
-/// <summary>Centered logo image (http/https URL).</summary>
-public sealed record ImageLine(string Url) : ReceiptLine;
+/// <summary>Centered logo image (http/https URL). WidthPx is the CSS pixel width the template asked for.</summary>
+public sealed record ImageLine(string Url, int? WidthPx = null) : ReceiptLine;
 
 /// <summary>
 /// Port of the Android receipt HTML → thermal-text converter (spec §5.1).
@@ -27,14 +27,19 @@ public sealed record ImageLine(string Url) : ReceiptLine;
 ///
 /// Honors the subset of CSS a thermal printer can express — text-align,
 /// font-weight, large font-size (double-size characters), display:none /
-/// visibility:hidden — from inline style attributes and simple single-selector
-/// rules (tag, .class, #id) in &lt;style&gt; blocks. Everything else
-/// (colors, fonts, margins, combinator selectors) is ignored.
+/// visibility:hidden, image width, vertical margins/padding (as blank lines),
+/// and table colgroup percent widths (as character columns) — from inline
+/// style attributes and simple selector rules (tag, .class, #id) in
+/// &lt;style&gt; blocks. Everything else (colors, fonts, combinators beyond
+/// descendant chains) is ignored.
 /// </summary>
 public static class ReceiptFormatter
 {
     private const int MaxDashes = 48;
     private const int MaxDistinctImages = 2;
+
+    /// <summary>Vertical margin/padding at least this big prints as a blank line (~½ of a 14px text line).</summary>
+    private const double SpaceThresholdPx = 8;
 
     /// <summary>48 chars per line for 80 mm paper, 32 for 58 mm.</summary>
     public static int CharsPerLine(string? paperSize) =>
@@ -82,13 +87,19 @@ public static class ReceiptFormatter
 
     /// <summary>
     /// Resolved presentation for a node: null Align means "inherit/default left".
-    /// DashAbove/DashBelow come from visible border-top/border-bottom and are
-    /// per-node (never inherited) — they print as dash separator lines.
+    /// DashAbove/DashBelow come from visible border-top/border-bottom, the
+    /// margins/paddings from the matching CSS declarations, and WidthPx from a
+    /// CSS width — all per-node (never inherited). Dashes print as separator
+    /// lines; big enough vertical margins/paddings print as blank lines.
     /// </summary>
     private readonly record struct NodeStyle(LineAlign? Align, bool Bold, bool Wide, bool Hidden,
-        bool DashAbove, bool DashBelow)
+        bool DashAbove, bool DashBelow, int? WidthPx,
+        double MarginTop, double MarginBottom, double PadTop, double PadBottom)
     {
-        public static readonly NodeStyle Default = new(null, false, false, false, false, false);
+        public static readonly NodeStyle Default = new(null, false, false, false, false, false, null, 0, 0, 0, 0);
+
+        public bool SpaceAbove => MarginTop + PadTop >= SpaceThresholdPx;
+        public bool SpaceBelow => MarginBottom + PadBottom >= SpaceThresholdPx;
     }
 
     /// <summary>Text accumulated between block boundaries plus the styling of its runs.</summary>
@@ -157,12 +168,20 @@ public static class ReceiptFormatter
             _lines.Add(new DashLine());
         }
 
-        public void AddImage(string url)
+        public void AddBlank()
+        {
+            // Never lead with a blank; collapse runs of blanks (margins "collapse").
+            if (_lines.Count == 0) return;
+            if (_lines[^1] is TextLine { Text: "" }) return;
+            _lines.Add(new TextLine("", LineAlign.Left));
+        }
+
+        public void AddImage(string url, int? widthPx)
         {
             if (_imageUrls.Contains(url)) return; // same logo repeated
             if (_imageUrls.Count >= MaxDistinctImages) return;
             _imageUrls.Add(url);
-            _lines.Add(new ImageLine(url));
+            _lines.Add(new ImageLine(url, widthPx));
         }
 
         public void AddRaw(TextLine line) => _lines.Add(line);
@@ -196,23 +215,38 @@ public static class ReceiptFormatter
                 return;
 
             case "br":
-                ctx.FlushText(buffer, style);
+                // Mid-text it breaks the line; between blocks (nothing pending) it is a blank line.
+                if (buffer.Sb.Length == 0) ctx.AddBlank();
+                else ctx.FlushText(buffer, style);
                 return;
 
             case "img":
-                if (ComputeStyle(node, style, ctx.Rules).Hidden) return;
+                var imgStyle = ComputeStyle(node, style, ctx.Rules);
+                if (imgStyle.Hidden) return;
                 ctx.FlushText(buffer, style);
                 var src = node.GetAttributeValue("src", "");
                 if (src.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                     src.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                    ctx.AddImage(src);
+                {
+                    // CSS width beats the width attribute, matching browsers.
+                    var widthPx = imgStyle.WidthPx;
+                    if (widthPx == null &&
+                        int.TryParse(node.GetAttributeValue("width", "").Trim(), out var attrWidth) &&
+                        attrWidth > 0)
+                        widthPx = attrWidth;
+                    ctx.AddImage(src, widthPx);
+                }
                 return;
 
             case "table":
                 var tableStyle = ComputeStyle(node, style, ctx.Rules);
                 if (tableStyle.Hidden) return;
                 ctx.FlushText(buffer, style);
+                if (tableStyle.SpaceAbove) ctx.AddBlank();
+                if (tableStyle.DashAbove) ctx.AddDash();
                 EmitTable(node, tableStyle, ctx);
+                if (tableStyle.DashBelow) ctx.AddDash();
+                if (tableStyle.SpaceBelow) ctx.AddBlank();
                 return;
         }
 
@@ -223,6 +257,7 @@ public static class ReceiptFormatter
         if (isBlock)
         {
             ctx.FlushText(buffer, style);
+            if (childStyle.SpaceAbove) ctx.AddBlank();
             if (childStyle.DashAbove) ctx.AddDash();
         }
 
@@ -233,6 +268,7 @@ public static class ReceiptFormatter
         {
             ctx.FlushText(buffer, childStyle);
             if (childStyle.DashBelow) ctx.AddDash();
+            if (childStyle.SpaceBelow) ctx.AddBlank();
         }
     }
 
@@ -245,14 +281,20 @@ public static class ReceiptFormatter
     /// <summary>Tag defaults → stylesheet rules → legacy align attribute → inline style (highest wins).</summary>
     private static NodeStyle ComputeStyle(HtmlNode node, NodeStyle inherited, IReadOnlyList<CssRule> rules)
     {
-        // Borders never inherit — each node starts without them.
-        var style = inherited with { DashAbove = false, DashBelow = false };
+        // Borders, spacing and width never inherit — each node starts without them.
+        var style = inherited with
+        {
+            DashAbove = false, DashBelow = false, WidthPx = null,
+            MarginTop = 0, MarginBottom = 0, PadTop = 0, PadBottom = 0,
+        };
         var name = node.Name.ToLowerInvariant();
 
         if (name is "h1" or "h2" or "h3" or "h4") style = style with { Align = LineAlign.Center };
         if (name is "h1" or "h2" or "h3" or "h4" or "h5" or "h6" or "b" or "strong" or "th")
             style = style with { Bold = true };
         if (name is "h1" or "h2") style = style with { Wide = true };
+        if (name == "font" && FontSizeAttrIsLarge(node) is bool largeFont)
+            style = style with { Wide = largeFont };
 
         var cls = node.GetAttributeValue("class", "");
         if (cls.Contains("header", StringComparison.OrdinalIgnoreCase) ||
@@ -331,9 +373,83 @@ public static class ReceiptFormatter
                 case "border":
                     if (IsVisibleBorder(value)) style = style with { DashAbove = true, DashBelow = true };
                     break;
+
+                case "width":
+                    if (ParseLengthPx(value) is double widthPx && widthPx > 0)
+                        style = style with { WidthPx = (int)Math.Round(widthPx) };
+                    break;
+
+                case "margin":
+                    if (ParseBoxShorthand(value) is (double mTop, double mBottom))
+                        style = style with { MarginTop = mTop, MarginBottom = mBottom };
+                    break;
+
+                case "margin-top":
+                    if (ParseLengthPx(value) is double mt) style = style with { MarginTop = mt };
+                    break;
+
+                case "margin-bottom":
+                    if (ParseLengthPx(value) is double mb) style = style with { MarginBottom = mb };
+                    break;
+
+                case "padding":
+                    if (ParseBoxShorthand(value) is (double pTop, double pBottom))
+                        style = style with { PadTop = pTop, PadBottom = pBottom };
+                    break;
+
+                case "padding-top":
+                    if (ParseLengthPx(value) is double pt) style = style with { PadTop = pt };
+                    break;
+
+                case "padding-bottom":
+                    if (ParseLengthPx(value) is double pb) style = style with { PadBottom = pb };
+                    break;
             }
         }
         return style;
+    }
+
+    /// <summary>&lt;font size="4"&gt; and up (or "+1"-style relative to base 3) is the template asking for big text.</summary>
+    private static bool? FontSizeAttrIsLarge(HtmlNode node)
+    {
+        var attr = node.GetAttributeValue("size", "").Trim();
+        if (attr.Length == 0) return null;
+        if (!int.TryParse(attr, System.Globalization.NumberStyles.AllowLeadingSign,
+                System.Globalization.CultureInfo.InvariantCulture, out var size))
+            return null;
+        if (attr[0] is '+' or '-') size += 3;
+        return size >= 4;
+    }
+
+    /// <summary>CSS length → CSS px. Percentages, em and auto are ignored (null).</summary>
+    private static double? ParseLengthPx(string value)
+    {
+        var m = Regex.Match(value, @"^(-?\d+(?:\.\d+)?)(px|pt|mm|cm|in)?$");
+        if (!m.Success) return null;
+        var v = double.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        return m.Groups[2].Value switch
+        {
+            "pt" => v * 96 / 72,
+            "mm" => v * 96 / 25.4,
+            "cm" => v * 96 / 2.54,
+            "in" => v * 96,
+            _ => v, // px or unitless
+        };
+    }
+
+    /// <summary>Top/bottom of a margin/padding shorthand ("5px 0", "4px 0 0", …), null when any part is unparsable.</summary>
+    private static (double Top, double Bottom)? ParseBoxShorthand(string value)
+    {
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length is 0 or > 4) return null;
+        var px = new double[parts.Length];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var v = parts[i] == "auto" ? (double?)0 : ParseLengthPx(parts[i]);
+            if (v == null) return null;
+            px[i] = v.Value;
+        }
+        return (px[0], parts.Length <= 2 ? px[0] : px[2]);
     }
 
     /// <summary>Receipt templates draw separators as borders; any visible border style becomes a dash line.</summary>
@@ -460,6 +576,9 @@ public static class ReceiptFormatter
 
     private static void EmitTable(HtmlNode table, NodeStyle style, FormatContext ctx)
     {
+        // colgroup percent widths become character columns for matching rows.
+        var colPercents = ParseColumnPercents(table);
+
         // Track thead/tbody/tfoot so a bordered group prints its separator once,
         // around the whole group (e.g. a dashed line under the column headers).
         HtmlNode? currentGroup = null;
@@ -483,20 +602,22 @@ public static class ReceiptFormatter
 
             var cells = row.ChildNodes
                 .Where(n => n.Name is "td" or "th")
-                .Select(c => (Style: CellStyle(c, rowStyle, ctx.Rules), Text: CleanText(c.InnerText)))
+                .Select(c => (Style: CellStyle(c, rowStyle, ctx.Rules), Text: CleanText(c.InnerText),
+                    Colspan: c.GetAttributeValue("colspan", 1)))
                 .Where(c => !c.Style.Hidden)
                 .ToList();
             if (cells.Count == 0) continue;
 
             if (rowStyle.DashAbove || cells.Any(c => c.Style.DashAbove)) ctx.AddDash();
-            EmitTableRow(cells, ctx);
+            EmitTableRow(cells, ctx, colPercents);
             if (rowStyle.DashBelow || cells.Any(c => c.Style.DashBelow)) ctx.AddDash();
         }
 
         if (currentGroup != null && groupStyle.DashBelow) ctx.AddDash();
     }
 
-    private static void EmitTableRow(List<(NodeStyle Style, string Text)> cells, FormatContext ctx)
+    private static void EmitTableRow(List<(NodeStyle Style, string Text, int Colspan)> cells,
+        FormatContext ctx, double[]? colPercents)
     {
         if (cells.All(c => IsSeparatorCell(c.Text)))
         {
@@ -512,22 +633,114 @@ public static class ReceiptFormatter
             return;
         }
 
-        // Last cell right-aligned on the same line as the joined left cells
-        // (single left column padded with spaces — never 50/50 columns).
         var bold = cells.Any(c => c.Style.Bold && c.Text.Length > 0);
         var wide = cells.Any(c => c.Style.Wide && c.Text.Length > 0);
+
+        // A row matching the colgroup lays out in real character columns,
+        // wrapping and aligning each cell inside its own column.
+        if (colPercents != null && cells.Count == colPercents.Length && cells.All(c => c.Colspan == 1))
+        {
+            var widths = ColumnCharWidths(colPercents, ctx.EffectiveWidth(wide));
+            if (widths != null)
+            {
+                EmitColumnarRow(cells, ctx, widths, bold, wide);
+                return;
+            }
+        }
+
+        // Otherwise: last cell right-aligned on the same line as the joined left
+        // cells (single left column padded with spaces — never 50/50 columns).
         var left = CleanText(string.Join(" ", cells.Take(cells.Count - 1).Select(c => c.Text)));
         var right = cells[^1].Text;
         EmitLeftRight(left, right, ctx, bold, wide);
     }
 
-    /// <summary>Cell style including bold implied by a nested &lt;b&gt;/&lt;strong&gt; wrapping the content.</summary>
+    /// <summary>Percent widths of the table's colgroup/col elements, null unless every col has one.</summary>
+    private static double[]? ParseColumnPercents(HtmlNode table)
+    {
+        var group = table.Elements("colgroup").FirstOrDefault();
+        var cols = (group != null ? group.Elements("col") : table.Elements("col")).ToList();
+        if (cols.Count < 2) return null;
+
+        var percents = new double[cols.Count];
+        for (var i = 0; i < cols.Count; i++)
+        {
+            var m = Regex.Match(cols[i].GetAttributeValue("style", ""), @"width\s*:\s*(\d+(?:\.\d+)?)\s*%");
+            if (!m.Success)
+                m = Regex.Match(cols[i].GetAttributeValue("width", ""), @"^\s*(\d+(?:\.\d+)?)\s*%\s*$");
+            if (!m.Success) return null;
+            percents[i] = double.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return percents.Sum() > 0 ? percents : null;
+    }
+
+    /// <summary>Distributes the line width across columns by percent (min 3 chars each), null if it can't fit.</summary>
+    private static int[]? ColumnCharWidths(double[] percents, int width)
+    {
+        const int minCol = 3;
+        if (percents.Length * minCol > width) return null;
+
+        var total = percents.Sum();
+        var widths = new int[percents.Length];
+        double target = 0;
+        var used = 0;
+        for (var i = 0; i < percents.Length; i++)
+        {
+            target += percents[i] / total * width;
+            widths[i] = Math.Max(minCol, (int)Math.Round(target) - used);
+            used += widths[i];
+        }
+        widths[^1] += width - used; // absorb rounding drift in the last column
+        return widths[^1] >= minCol ? widths : null;
+    }
+
+    private static void EmitColumnarRow(List<(NodeStyle Style, string Text, int Colspan)> cells,
+        FormatContext ctx, int[] widths, bool bold, bool wide)
+    {
+        // Wrap one char short of the column so adjacent columns always keep a gap.
+        var segments = new List<string>[cells.Count];
+        for (var i = 0; i < cells.Count; i++)
+            segments[i] = Wrap(cells[i].Text, Math.Max(1, widths[i] - 1));
+
+        var height = segments.Max(s => s.Count);
+        for (var row = 0; row < height; row++)
+        {
+            var sb = new StringBuilder();
+            for (var i = 0; i < cells.Count; i++)
+            {
+                var seg = row < segments[i].Count ? segments[i][row] : "";
+                sb.Append((cells[i].Style.Align ?? LineAlign.Left) switch
+                {
+                    LineAlign.Right => seg.PadLeft(widths[i]),
+                    LineAlign.Center => seg.PadLeft((widths[i] + seg.Length) / 2).PadRight(widths[i]),
+                    _ => seg.PadRight(widths[i]),
+                });
+            }
+            ctx.AddRaw(new TextLine(sb.ToString().TrimEnd(), LineAlign.Left, bold, wide));
+        }
+    }
+
+    /// <summary>
+    /// Cell style including bold implied by a nested &lt;b&gt;/&lt;strong&gt; and double-size
+    /// implied by a nested &lt;font size="4+"&gt; or large inline font-size (the cell text
+    /// is flattened, so inline markup must surface on the cell itself).
+    /// </summary>
     private static NodeStyle CellStyle(HtmlNode cell, NodeStyle rowStyle, IReadOnlyList<CssRule> rules)
     {
         var style = ComputeStyle(cell, rowStyle, rules);
         if (!style.Bold && cell.Descendants().Any(d => d.Name is "b" or "strong"))
             style = style with { Bold = true };
+        if (!style.Wide && cell.Descendants().Any(HasLargeInlineFont))
+            style = style with { Wide = true };
         return style;
+    }
+
+    private static bool HasLargeInlineFont(HtmlNode node)
+    {
+        if (node.Name.Equals("font", StringComparison.OrdinalIgnoreCase) && FontSizeAttrIsLarge(node) == true)
+            return true;
+        var m = Regex.Match(node.GetAttributeValue("style", ""), @"font-size\s*:\s*([^;]+)");
+        return m.Success && IsLargeFontSize(m.Groups[1].Value.Trim().ToLowerInvariant()) == true;
     }
 
     private static void EmitLeftRight(string left, string right, FormatContext ctx, bool bold, bool wide)

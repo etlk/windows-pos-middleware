@@ -434,6 +434,128 @@ public class ReceiptFormatterTests
     }
 
     [Fact]
+    public void Img_WidthAttribute_AndCssWidth_CarriedOnImageLine()
+    {
+        var html = """
+            <html><head><style>.logo-image { width: 200px; }</style></head>
+            <body>
+              <img src="https://a.example/attr.png" width="150">
+              <img src="https://b.example/css.png" class="logo-image">
+            </body></html>
+            """;
+        var images = ReceiptFormatter.Format(html, 48).OfType<ImageLine>().ToList();
+        Assert.Equal(150, images.Single(i => i.Url.Contains("attr")).WidthPx);
+        Assert.Equal(200, images.Single(i => i.Url.Contains("css")).WidthPx);
+    }
+
+    [Fact]
+    public void Img_WithoutWidth_HasNoWidthPx()
+    {
+        var images = ReceiptFormatter.Format("""<body><img src="https://a.example/logo.png"></body>""", 48)
+            .OfType<ImageLine>().ToList();
+        Assert.Null(Assert.Single(images).WidthPx);
+    }
+
+    [Fact]
+    public void Br_BetweenBlocks_PrintsBlankLine_ButMidTextOnlyBreaks()
+    {
+        var html = """
+            <body>
+              <div>First section</div>
+              <br>
+              <div>Second section<br>same block</div>
+            </body>
+            """;
+        var lines = ReceiptFormatter.Format(html, 48);
+        var flat = lines.OfType<TextLine>().ToList();
+        // Trailing feed blanks are always there; look at the shape before them.
+        Assert.Equal("First section", flat[0].Text);
+        Assert.Equal("", flat[1].Text);
+        Assert.Equal("Second section", flat[2].Text);
+        Assert.Equal("same block", flat[3].Text); // no blank inserted mid-block
+    }
+
+    [Fact]
+    public void BigVerticalMargins_PrintBlankLines_SmallOnesDoNot()
+    {
+        var html = """
+            <html><head><style>
+              .order-info { margin-top: 10px; }
+              .order-info p { margin: 3px 0; }
+              .footer { margin-top: 20px; }
+            </style></head>
+            <body>
+              <div>Header</div>
+              <div class="order-info"><p>Cart No: 1</p><p>Date: today</p></div>
+              <div class="footer">Order Confirmed</div>
+            </body></html>
+            """;
+        var flat = ReceiptFormatter.Format(html, 48).OfType<TextLine>().ToList();
+        Assert.Equal(
+            new[] { "Header", "", "Cart No: 1", "Date: today", "", "Order Confirmed" },
+            flat.Take(6).Select(t => t.Text));
+    }
+
+    [Fact]
+    public void ColgroupPercentWidths_LayOutRealColumns_PerCellAlignment()
+    {
+        // The production order-receipt template's items table.
+        var html = """
+            <html><head><style>
+              .left { text-align: left; } .right { text-align: right; }
+            </style></head>
+            <body><table>
+              <colgroup>
+                <col style="width:12%"><col style="width:42%"><col style="width:21%"><col style="width:25%">
+              </colgroup>
+              <thead><tr>
+                <th class="left">Qty</th><th class="left">Description</th>
+                <th class="right">Price</th><th class="right">Amount</th>
+              </tr></thead>
+              <tbody><tr>
+                <td class="left">1</td><td class="left">Kiri Samba Rice Vegetable Biriyani</td>
+                <td class="right">600.00</td><td class="right">600.00</td>
+              </tr></tbody>
+            </table></body></html>
+            """;
+        var text = TextLines(ReceiptFormatter.Format(html, 48));
+
+        // Columns: 6 + 20 + 10 + 12 = 48 chars. Header row bold, both numbers right-aligned.
+        var header = text[0];
+        Assert.True(header.Bold);
+        Assert.StartsWith("Qty   Description", header.Text);
+        Assert.EndsWith("Price      Amount", header.Text);
+
+        // Long description wraps inside its own column; amounts stay on the first line.
+        var item = text[1];
+        Assert.StartsWith("1     Kiri Samba Rice", item.Text);
+        Assert.EndsWith("600.00      600.00", item.Text);
+        Assert.Equal(48, item.Text.Length);
+        Assert.Equal("Vegetable Biriyani", text[2].Text.Trim());
+        Assert.StartsWith("      ", text[2].Text); // continuation sits under the description column
+    }
+
+    [Fact]
+    public void FontSizeFour_InTableCell_PrintsDoubleSizeRow()
+    {
+        var html = """
+            <body><table>
+              <colgroup><col style="width:55%"><col style="width:45%"></colgroup>
+              <tr>
+                <td style="text-align:left"><b><font size="4">Total</font></b></td>
+                <td style="text-align:right"><b><font size="4">6,500.00</font></b></td>
+              </tr>
+            </table></body>
+            """;
+        var row = Assert.Single(TextLines(ReceiptFormatter.Format(html, 48)));
+        Assert.True(row.Wide);
+        Assert.True(row.Bold);
+        Assert.Equal(24, row.Text.Length); // wide rows lay out at half width
+        Assert.StartsWith("Total", row.Text);
+        Assert.EndsWith("6,500.00", row.Text);
+    }
+
+    [Fact]
     public void Output_EndsWithSixBlankLines()
     {
         var lines = ReceiptFormatter.Format("<body><p>x</p></body>", 48);
