@@ -12,7 +12,7 @@ public class ApiException : Exception
 
 /// <summary>
 /// Tenant API client (spec §3). All requests send Accept: application/json.
-/// Non-2xx ⇒ "Server {status}: {body}"; network failure ⇒ "Cannot reach:\n{url}\n\n({message})".
+/// Non-2xx ⇒ "Server {status}: {body}"; network failure ⇒ "Cannot reach:\n{url}\n\n({message chain})".
 /// </summary>
 public class ApiService
 {
@@ -66,7 +66,7 @@ public class ApiService
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
-            throw new ApiException($"Cannot reach:\n{url}\n\n({ex.Message})");
+            throw new ApiException($"Cannot reach:\n{url}\n\n({DescribeFailure(ex)})");
         }
 
         using (response)
@@ -75,6 +75,26 @@ public class ApiService
             if (!response.IsSuccessStatusCode)
                 throw new ApiException($"Server {(int)response.StatusCode}: {text}");
         }
+    }
+
+    /// <summary>
+    /// Messages like "The SSL connection could not be established, see inner exception."
+    /// are useless without the inner chain, so include each inner message too.
+    /// </summary>
+    public static string DescribeFailure(Exception ex)
+    {
+        var sb = new StringBuilder();
+        string? previous = null;
+        for (Exception? e = ex; e != null; e = e.InnerException)
+        {
+            if (string.IsNullOrEmpty(e.Message) || e.Message == previous)
+                continue;
+            if (sb.Length > 0)
+                sb.Append(" — ");
+            sb.Append(e.Message);
+            previous = e.Message;
+        }
+        return sb.Length > 0 ? sb.ToString() : ex.GetType().Name;
     }
 
     private async Task<JsonNode?> GetJsonAsync(string url, CancellationToken ct)
@@ -90,7 +110,7 @@ public class ApiService
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
-            throw new ApiException($"Cannot reach:\n{url}\n\n({ex.Message})");
+            throw new ApiException($"Cannot reach:\n{url}\n\n({DescribeFailure(ex)})");
         }
 
         using (response)
