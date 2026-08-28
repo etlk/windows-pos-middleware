@@ -38,7 +38,11 @@ public class EscPosRenderer
         _imageFetcher = imageFetcher;
     }
 
-    public async Task<byte[]> RenderAsync(IReadOnlyList<ReceiptLine> lines, int width, bool includeImages = true)
+    public async Task<byte[]> RenderAsync(
+        IReadOnlyList<ReceiptLine> lines,
+        int width,
+        bool includeImages = true,
+        bool openCashbox = false)
     {
         var ms = new MemoryStream();
         void Emit(params byte[] bytes) => ms.Write(bytes, 0, bytes.Length);
@@ -66,6 +70,8 @@ public class EscPosRenderer
 
         Emit(0x1B, 0x64, 0x04); // ESC d 4 — feed so the cut clears the footer
         Emit(0x1D, 0x56, 0x00); // GS V 0 — full cut
+        if (openCashbox)
+            Emit(0x1B, 0x70, 0x00, 0x3C, 0xFF); // ESC p — cash drawer kick (DantSu parity)
         return ms.ToArray();
     }
 

@@ -129,7 +129,8 @@ public class PrintAgent
         var key = $"{printer.Ip}:{port}";
         try
         {
-            await _queue.Enqueue(key, () => _printer.PrintAsync(evaluation.Html!, printer)).ConfigureAwait(false);
+            await _queue.Enqueue(key, () =>
+                _printer.PrintAsync(evaluation.Html!, printer, evaluation.OpenCashbox)).ConfigureAwait(false);
             SetLastJob($"Printed to {printer.Ip}:{port}");
         }
         catch (Exception ex)

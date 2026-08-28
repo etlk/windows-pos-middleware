@@ -14,6 +14,9 @@ public class EscPosRendererTests
     private static Task<byte[]> RenderAsync(params ReceiptLine[] lines) =>
         new EscPosRenderer().RenderAsync(lines, 48);
 
+    private static Task<byte[]> RenderAsync(bool openCashbox, params ReceiptLine[] lines) =>
+        new EscPosRenderer().RenderAsync(lines, 48, openCashbox: openCashbox);
+
     private static bool ContainsSequence(byte[] haystack, byte[] needle)
     {
         for (var i = 0; i <= haystack.Length - needle.Length; i++)
@@ -100,5 +103,21 @@ public class EscPosRendererTests
 
         Assert.Equal(576, decoder.TargetWidthDots);
         Assert.True(decoder.ExactWidth);
+    }
+
+    [Fact]
+    public async Task OpenCashbox_AppendsDrawerKickAfterCut()
+    {
+        var bytes = await RenderAsync(openCashbox: true, new TextLine("TOTAL", LineAlign.Left));
+        Assert.True(ContainsSequence(bytes, new byte[] { 0x1D, 0x56, 0x00 }));
+        Assert.True(ContainsSequence(bytes, new byte[] { 0x1B, 0x70, 0x00, 0x3C, 0xFF }));
+        Assert.True(bytes[^5] == 0x1B && bytes[^4] == 0x70);
+    }
+
+    [Fact]
+    public async Task WithoutOpenCashbox_NoDrawerKick()
+    {
+        var bytes = await RenderAsync(openCashbox: false, new TextLine("TOTAL", LineAlign.Left));
+        Assert.False(ContainsSequence(bytes, new byte[] { 0x1B, 0x70, 0x00, 0x3C, 0xFF }));
     }
 }

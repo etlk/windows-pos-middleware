@@ -160,4 +160,34 @@ public class PrintJobHandlerTests
         Assert.False(result.ShouldPrint);
         Assert.StartsWith("Ignored command:", result.Message);
     }
+
+    [Theory]
+    [InlineData("PRINT_RECEIPT", true)]
+    [InlineData("print_receipt", true)]
+    [InlineData("PRINT_KOT", false)]
+    [InlineData("PRINT", false)]
+    [InlineData("PRINT_SOMETHING", false)]
+    [InlineData(null, false)]
+    public void ShouldOpenCashbox_OnlyForPrintReceipt(string? command, bool expected)
+    {
+        Assert.Equal(expected, PrintJobHandler.ShouldOpenCashbox(command));
+    }
+
+    [Fact]
+    public void PrintReceipt_SetsOpenCashboxFlag()
+    {
+        var raw = """{"command":"PRINT_RECEIPT","html":"<p>x</p>"}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(Printer("10.0.0.5")));
+        Assert.True(result.ShouldPrint);
+        Assert.True(result.OpenCashbox);
+    }
+
+    [Fact]
+    public void PrintKot_DoesNotOpenCashbox()
+    {
+        var raw = """{"command":"PRINT_KOT","html":"<p>x</p>"}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(Printer("10.0.0.5")));
+        Assert.True(result.ShouldPrint);
+        Assert.False(result.OpenCashbox);
+    }
 }

@@ -23,7 +23,11 @@ public class ReceiptPrinter
         _http = http ?? new HttpClient();
     }
 
-    public async Task PrintAsync(string html, PrintConfig config, CancellationToken ct = default)
+    public async Task PrintAsync(
+        string html,
+        PrintConfig config,
+        bool openCashbox = false,
+        CancellationToken ct = default)
     {
         var width = ReceiptFormatter.CharsPerLine(config.PaperSize);
         var lines = ReceiptFormatter.Format(html, width).ToList();
@@ -41,13 +45,15 @@ public class ReceiptPrinter
         var hasImages = reachableLines.Any(l => l is ImageLine);
         try
         {
-            var bytes = await _renderer.RenderAsync(reachableLines, width, includeImages: true).ConfigureAwait(false);
+            var bytes = await _renderer.RenderAsync(reachableLines, width, includeImages: true, openCashbox)
+                .ConfigureAwait(false);
             await _transport.SendAsync(config.Ip, port, bytes, ct).ConfigureAwait(false);
         }
         catch when (hasImages && !ct.IsCancellationRequested)
         {
             var stripped = reachableLines.Where(l => l is not ImageLine).ToList();
-            var bytes = await _renderer.RenderAsync(stripped, width, includeImages: false).ConfigureAwait(false);
+            var bytes = await _renderer.RenderAsync(stripped, width, includeImages: false, openCashbox)
+                .ConfigureAwait(false);
             await _transport.SendAsync(config.Ip, port, bytes, ct).ConfigureAwait(false);
         }
     }

@@ -10,10 +10,11 @@ public sealed class JobEvaluation
     public string? Message { get; init; }
     public PrintConfig? Printer { get; init; }
     public string? Html { get; init; }
+    public bool OpenCashbox { get; init; }
 
     public static JobEvaluation Skip(string message) => new() { ShouldPrint = false, Message = message };
-    public static JobEvaluation Print(PrintConfig printer, string html) =>
-        new() { ShouldPrint = true, Printer = printer, Html = html };
+    public static JobEvaluation Print(PrintConfig printer, string html, bool openCashbox = false) =>
+        new() { ShouldPrint = true, Printer = printer, Html = html, OpenCashbox = openCashbox };
 }
 
 /// <summary>
@@ -22,6 +23,10 @@ public sealed class JobEvaluation
 /// </summary>
 public static class PrintJobHandler
 {
+    /// <summary>Cash drawer kick after print — cashier receipts only, never KOT/kitchen.</summary>
+    public static bool ShouldOpenCashbox(string? command) =>
+        string.Equals(command?.Trim(), "PRINT_RECEIPT", StringComparison.OrdinalIgnoreCase);
+
     public static JobEvaluation Evaluate(string rawPayload, AgentConfigs configs)
     {
         var job = UnwrapPayload(rawPayload);
@@ -57,7 +62,7 @@ public static class PrintJobHandler
         if (printer == null)
             return JobEvaluation.Skip("No printer configured. Set IP for terminal/department in middleware first.");
 
-        return JobEvaluation.Print(printer, html);
+        return JobEvaluation.Print(printer, html, ShouldOpenCashbox(command));
     }
 
     private static PrintConfig? ConfiguredPrinter(SlotConfig? slot)
