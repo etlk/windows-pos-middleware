@@ -121,3 +121,4 @@ public class EscPosRendererTests
         Assert.False(ContainsSequence(bytes, new byte[] { 0x1B, 0x70, 0x00, 0x3C, 0xFF }));
     }
 }
+//comment for CI/CD
