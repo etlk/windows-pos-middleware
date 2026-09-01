@@ -8,6 +8,15 @@ public partial class App : Application
 {
     private void Application_Startup(object sender, StartupEventArgs e)
     {
+        if (!SingleInstance.TryAcquire())
+        {
+            SingleInstance.NotifyExistingInstance();
+            Shutdown();
+            return;
+        }
+
+        Exit += (_, _) => SingleInstance.Dispose();
+
         PrintAgent.ImageDecoder = new DrawingImageDecoder();
 
         var startMinimized = e.Args.Any(a =>

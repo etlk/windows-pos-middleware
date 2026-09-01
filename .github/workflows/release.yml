@@ -26,6 +26,12 @@ jobs:
       - name: Compute next version
         shell: pwsh
         run: |
+          if (Test-Path VERSION) {
+            $version = (Get-Content VERSION -Raw).Trim()
+            echo "Releasing v$version (from VERSION file)"
+            echo "VERSION=$version" >> $env:GITHUB_ENV
+            exit 0
+          }
           git fetch --tags --quiet
           $latest = git tag --list 'v*' --sort=-v:refname | Select-Object -First 1
           if (-not $latest) {

@@ -35,6 +35,9 @@ public partial class MainWindow : Window
 
         CreateNotifyIcon();
 
+        SingleInstance.StartWatching(() =>
+            Dispatcher.BeginInvoke(ShowMainWindow));
+
         PrintAgent.Instance.Changed += OnAgentChanged;
         Activated += async (_, _) => await PrintAgent.Instance.ReconnectIfNeededAsync();
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
