@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace MiddlewareApp.Services;
 
 /// <summary>
@@ -28,9 +30,9 @@ public static class SingleInstance
             using var showEvent = EventWaitHandle.OpenExisting(ShowEventName);
             showEvent.Set();
         }
-        catch (WaitHandleCannotOpenException)
+        catch (Exception)
         {
-            // First instance still starting — nothing to wake.
+            // First instance still starting, or named event not created yet.
         }
     }
 
