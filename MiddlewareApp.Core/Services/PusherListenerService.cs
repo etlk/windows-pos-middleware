@@ -31,11 +31,19 @@ public class PusherListenerService
         var code = AppConfig.NormalizeBusinessCode(businessCode);
         ChannelName = $"merchant.{code}.location.{locationId}";
 
-        var pusher = new Pusher(AppConfig.PusherKey, new PusherOptions
+        var options = new PusherOptions
         {
-            Cluster = AppConfig.PusherCluster,
-            Encrypted = true, // forceTLS
-        });
+            Encrypted = true, // forceTLS / wss
+        };
+
+        // Custom Soketi (Railway): Host overrides Cluster. Official Pusher: Cluster only.
+        var customHost = AppConfig.PusherClientHost;
+        if (!string.IsNullOrWhiteSpace(customHost))
+            options.Host = customHost;
+        else
+            options.Cluster = AppConfig.PusherCluster;
+
+        var pusher = new Pusher(AppConfig.PusherKey, options);
         _pusher = pusher;
 
         pusher.ConnectionStateChanged += (_, state) => SetState(MapState(state));
