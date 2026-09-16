@@ -56,6 +56,12 @@
                            Foreground="{StaticResource TextMutedBrush}"
                            TextTrimming="CharacterEllipsis"/>
 
+                <!-- Always available, even while the print-config GET is still failing,
+                     so a wrong/unreachable tenant is never a dead end. -->
+                <Button x:Name="StartOverButton" Style="{StaticResource BackButton}"
+                        Margin="0,14,0,0" Click="StartOver_Click"
+                        Content="↺ Start over on this PC"/>
+
                 <StackPanel x:Name="LeftActionsPanel" Visibility="Collapsed">
                     <!-- Scan bar -->
                     <Border Style="{StaticResource Card}" Margin="0,16,0,0" Padding="14,12">
