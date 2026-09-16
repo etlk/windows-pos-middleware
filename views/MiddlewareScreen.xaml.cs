@@ -539,6 +539,39 @@ public partial class MiddlewareScreen : UserControl
     private void AutoStart_Toggled(object sender, RoutedEventArgs e) =>
         AutoStart.SetEnabled(AutoStartCheck.IsChecked == true);
 
+    // ===== Hard reset =====
+
+    /// <summary>
+    /// Local-only reset: forgets the stored session/configs and returns to screen 1.
+    /// Sends no API request, so it still works when the tenant is unreachable and the
+    /// screen is stuck on "Connecting…" with no Back button.
+    /// </summary>
+    private async void StartOver_Click(object sender, RoutedEventArgs e)
+    {
+        var result = MessageBox.Show(
+            "This forgets the business code, location and terminal saved on this PC and " +
+            "returns to the first setup screen. Printers saved in Cloud POS are left as they are.",
+            "Start over", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+        if (result != MessageBoxResult.OK) return;
+
+        StartOverButton.IsEnabled = false;
+        _pollTimer.Stop();
+        _scanCts?.Cancel();
+
+        try
+        {
+            await PrintAgent.Instance.StopAsync(); // stops the listener + clears persistence
+        }
+        catch
+        {
+            // A reset must always land on the first screen.
+        }
+
+        AgentStorage.Clear();
+        AppState.Reset();
+        ((MainWindow)Window.GetWindow(this)!).Navigate(new BusinessCodeScreen());
+    }
+
     // ===== Navigation =====
 
     private async void Back_Click(object sender, RoutedEventArgs e)
