@@ -6,9 +6,21 @@ namespace MiddlewareApp.Core;
 /// </summary>
 public static class AppConfig
 {
-    public const string BaseDomain = "cloudpos.lk";
-    public const string PusherKey = "72e6aeaeb45fc01084ad";
+    /// <summary>Tenant API host: https://{businessCode}.{BaseDomain}</summary>
+    public const string BaseDomain = "etpos.store";
+
+    /// <summary>Pusher / Soketi app key (Railway development for current testing).</summary>
+    public const string PusherKey = "ozcz3m2jdr4qg1fj8vk53v1b87bwk9dq";
     public const string PusherCluster = "ap1";
+
+    /// <summary>
+    /// Custom Soketi / Railway host. Empty = official Pusher.com via Cluster.
+    /// When set, overrides Cluster (PusherClient Host property).
+    /// </summary>
+    public const string PusherHost = "cloudpos-lk-websocket-development.up.railway.app";
+
+    /// <summary>WebSocket port for PusherHost (443 for Railway TLS).</summary>
+    public const int PusherPort = 443;
 
     /// <summary>
     /// Laravel broadcast event name. Empty ⇒ bind all events and filter by payload command.
@@ -31,5 +43,18 @@ public static class AppConfig
         if (!string.IsNullOrWhiteSpace(dev))
             return dev.TrimEnd('/');
         return $"https://{NormalizeBusinessCode(businessCode)}.{BaseDomain}";
+    }
+
+    /// <summary>
+    /// Host string for PusherClient options, e.g. "example.com:443".
+    /// Null when using official Pusher.com clusters.
+    /// </summary>
+    public static string? PusherClientHost
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(PusherHost)) return null;
+            return PusherPort > 0 ? $"{PusherHost}:{PusherPort}" : PusherHost;
+        }
     }
 }
