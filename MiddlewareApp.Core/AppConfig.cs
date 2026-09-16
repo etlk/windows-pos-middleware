@@ -7,19 +7,22 @@ namespace MiddlewareApp.Core;
 public static class AppConfig
 {
     /// <summary>Tenant API host: https://{businessCode}.{BaseDomain}</summary>
-    public const string BaseDomain = "etpos.store";
+    public const string BaseDomain = "cloudpos.lk";
 
-    /// <summary>Pusher / Soketi app key (Railway development for current testing).</summary>
-    public const string PusherKey = "ozcz3m2jdr4qg1fj8vk53v1b87bwk9dq";
+    /// <summary>
+    /// Soketi public app key. Subscribing only needs this — the app id and secret are
+    /// server-side publish credentials and must never ship in the client.
+    /// </summary>
+    public const string PusherKey = "x2ihv6ewbwn8200acmsoel0yyss8yotv";
     public const string PusherCluster = "ap1";
 
     /// <summary>
-    /// Custom Soketi / Railway host. Empty = official Pusher.com via Cluster.
+    /// Custom Soketi host. Empty = official Pusher.com via Cluster.
     /// When set, overrides Cluster (PusherClient Host property).
     /// </summary>
-    public const string PusherHost = "cloudpos-lk-websocket-development.up.railway.app";
+    public const string PusherHost = "ws.cloudpos.lk";
 
-    /// <summary>WebSocket port for PusherHost (443 for Railway TLS).</summary>
+    /// <summary>WebSocket port for PusherHost (443 for TLS).</summary>
     public const int PusherPort = 443;
 
     /// <summary>

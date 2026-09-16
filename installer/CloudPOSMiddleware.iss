@@ -1,5 +1,5 @@
 ; Cloud POS Middleware — Inno Setup installer
-; Build:  ISCC.exe /DAppVersion=1.3.2 installer\CloudPOSMiddleware.iss
+; Build:  ISCC.exe /DAppVersion=1.3.3 installer\CloudPOSMiddleware.iss
 ; Expects the published app in publish\win-x64\ (dotnet publish -r win-x64).
 
 #ifndef AppVersion
