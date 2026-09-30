@@ -4,13 +4,14 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using MiddlewareApp.Core.Models;
+using MiddlewareApp.Services;
 
 namespace MiddlewareApp.Views.Controls;
 
 /// <summary>
 /// One printable slot's configuration card (spec §6.4): status badge, assigned-printer
 /// box with Remove, per-card printer chip selection, per-card manual IP entry, and
-/// Save/Update. The parent Middleware screen owns the shared printer list and the API.
+/// Save/Update. Terminal cards also offer Windows/USB installed printers.
 /// </summary>
 public partial class ConfigCard : UserControl
 {
@@ -26,8 +27,10 @@ public partial class ConfigCard : UserControl
     public int SlotId => _slot?.Id ?? 0;
     public string SlotName => _slot?.Name ?? "";
 
-    /// <summary>Raised with the chosen printer when Save/Update is clicked.</summary>
+    /// <summary>Raised with the chosen LAN printer when Save/Update is clicked.</summary>
     public event Action<ConfigCard, DiscoveredPrinter>? SaveRequested;
+    /// <summary>Raised with a Windows printer queue name (USB / installed driver).</summary>
+    public event Action<ConfigCard, string>? SaveWindowsRequested;
     /// <summary>Raised after the user confirms removing the assigned printer.</summary>
     public event Action<ConfigCard>? RemoveRequested;
     /// <summary>Parent adds a manual printer to the shared list (dedupe by IP) and returns it.</summary>
@@ -39,6 +42,9 @@ public partial class ConfigCard : UserControl
         IsDevice = isDevice;
         InitializeComponent();
         TitleText.Text = title;
+        WindowsPrinterSection.Visibility = isDevice ? Visibility.Visible : Visibility.Collapsed;
+        if (isDevice)
+            RefreshWindowsPrinterList();
     }
 
     /// <summary>Update assigned state from a fresh config load without touching the
@@ -46,7 +52,8 @@ public partial class ConfigCard : UserControl
     public void SetSlot(SlotConfig slot)
     {
         _slot = slot;
-        var assigned = slot.PrintConfig != null && !string.IsNullOrWhiteSpace(slot.PrintConfig.Ip);
+        var cfg = slot.PrintConfig;
+        var assigned = PrintConfigHelpers.IsConfigured(cfg);
 
         if (assigned)
         {
@@ -55,11 +62,14 @@ public partial class ConfigCard : UserControl
             BadgeText.Text = "Configured";
             AssignedBox.Visibility = Visibility.Visible;
             NoPrinterText.Visibility = Visibility.Collapsed;
-            AssignedIpText.Text = $"{slot.PrintConfig!.Ip}:{slot.PrintConfig.Port}";
-            AssignedPaperText.Text = $"Paper: {slot.PrintConfig.PaperSize}";
-            SelectLabel.Text = "Change printer";
-            SaveLabel.Text = "Update printer";
-            _selectedIp ??= slot.PrintConfig.Ip; // pre-select the assigned IP
+            AssignedIpText.Text = PrintConfigHelpers.Label(cfg);
+            AssignedPaperText.Text = $"Paper: {cfg!.PaperSize}";
+            SelectLabel.Text = "Change LAN printer";
+            SaveLabel.Text = "Update LAN printer";
+            if (PrintConfigHelpers.IsTcp(cfg))
+                _selectedIp ??= cfg.Ip;
+            if (PrintConfigHelpers.IsUsb(cfg) && IsDevice)
+                RefreshWindowsPrinterList();
         }
         else
         {
@@ -68,8 +78,8 @@ public partial class ConfigCard : UserControl
             BadgeText.Text = "Not set";
             AssignedBox.Visibility = Visibility.Collapsed;
             NoPrinterText.Visibility = Visibility.Visible;
-            SelectLabel.Text = "Select printer";
-            SaveLabel.Text = "Save printer";
+            SelectLabel.Text = "Select LAN printer";
+            SaveLabel.Text = "Save LAN printer";
         }
         RebuildChips();
     }
@@ -87,6 +97,8 @@ public partial class ConfigCard : UserControl
         SaveButton.IsEnabled = !busy;
         RemoveButton.IsEnabled = !busy;
         UseIpButton.IsEnabled = !busy;
+        SaveWindowsButton.IsEnabled = !busy;
+        WindowsPrinterCombo.IsEnabled = !busy;
     }
 
     public void SetSaving(bool saving)
@@ -94,6 +106,41 @@ public partial class ConfigCard : UserControl
         _saving = saving;
         SaveLabel.Visibility = saving ? Visibility.Collapsed : Visibility.Visible;
         SaveSpinner.Visibility = saving ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void RefreshWindowsPrinterList()
+    {
+        var previous = WindowsPrinterCombo.SelectedItem as string;
+        var names = WindowsPrinterDiscovery.ListInstalledPrinterNames();
+        WindowsPrinterCombo.ItemsSource = names;
+
+        string? pick = null;
+        if (previous != null)
+            pick = names.FirstOrDefault(n => string.Equals(n, previous, StringComparison.OrdinalIgnoreCase));
+        if (pick == null && PrintConfigHelpers.IsUsb(_slot?.PrintConfig))
+            pick = names.FirstOrDefault(n =>
+                string.Equals(n, _slot!.PrintConfig!.UsbDeviceName, StringComparison.OrdinalIgnoreCase));
+
+        if (pick != null)
+            WindowsPrinterCombo.SelectedItem = pick;
+        else if (names.Count > 0)
+            WindowsPrinterCombo.SelectedIndex = 0;
+    }
+
+    private void RefreshWindows_Click(object sender, RoutedEventArgs e) => RefreshWindowsPrinterList();
+
+    private void SaveWindows_Click(object sender, RoutedEventArgs e)
+    {
+        if (_saving || !IsDevice) return;
+        var name = WindowsPrinterCombo.SelectedItem as string;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            MessageBox.Show(
+                "Select a Windows printer first. Install the receipt printer driver in Windows if the list is empty.",
+                "No printer selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        SaveWindowsRequested?.Invoke(this, name);
     }
 
     private void RebuildChips()
@@ -182,11 +229,13 @@ public partial class ConfigCard : UserControl
         var printer = _printers.FirstOrDefault(p => p.Ip == _selectedIp);
         // The assigned printer pre-selects its IP even when the scan didn't find it —
         // Update must still work in that case.
-        if (printer == null && _selectedIp != null && _slot?.PrintConfig?.Ip == _selectedIp)
+        if (printer == null && _selectedIp != null &&
+            PrintConfigHelpers.IsTcp(_slot?.PrintConfig) &&
+            _slot!.PrintConfig!.Ip == _selectedIp)
             printer = new DiscoveredPrinter(_selectedIp, _selectedIp, _slot.PrintConfig.Port, "manual");
         if (printer == null)
         {
-            MessageBox.Show("Select a printer first", "No printer selected",
+            MessageBox.Show("Select a LAN printer first", "No printer selected",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }

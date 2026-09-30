@@ -40,9 +40,30 @@
                        FontSize="13" Foreground="{StaticResource TextMutedBrush}"
                        Margin="0,10,0,0"/>
 
+            <!-- Windows / USB printer (terminal / cashier only) -->
+            <StackPanel x:Name="WindowsPrinterSection" Visibility="Collapsed" Margin="0,16,0,0">
+                <TextBlock Style="{StaticResource FieldLabel}"
+                           Text="Windows / USB printer" Margin="0,0,0,4"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" Margin="0,0,0,8"
+                           Text="Pick the receipt printer already installed in Windows (driver required). RAW ESC/POS."/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="WindowsPrinterCombo" FontSize="13" Padding="8,6"
+                              VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="1" Style="{StaticResource LinkButton}" Content="Refresh"
+                            Margin="12,0,0,0" VerticalAlignment="Center" Click="RefreshWindows_Click"/>
+                </Grid>
+                <Button x:Name="SaveWindowsButton" Style="{StaticResource PrimaryButton}"
+                        Content="Save Windows printer" Click="SaveWindows_Click"/>
+            </StackPanel>
+
             <!-- Printer picker -->
             <TextBlock x:Name="SelectLabel" Style="{StaticResource FieldLabel}"
-                       Text="Select printer" Margin="0,16,0,6"/>
+                       Text="Select LAN printer" Margin="0,16,0,6"/>
 
             <StackPanel x:Name="ScanStatusPanel" Orientation="Horizontal" Visibility="Collapsed"
                         Margin="0,2,0,4">

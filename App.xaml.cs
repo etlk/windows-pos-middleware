@@ -18,6 +18,7 @@ public partial class App : Application
         Exit += (_, _) => SingleInstance.Dispose();
 
         PrintAgent.ImageDecoder = new DrawingImageDecoder();
+        PrintAgent.SpoolerTransport = new WindowsSpoolerTransport();
 
         var startMinimized = e.Args.Any(a =>
             string.Equals(a, "--minimized", StringComparison.OrdinalIgnoreCase));
