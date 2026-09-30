@@ -68,14 +68,14 @@ public static class PrintConfigHelpers
         if (!IsConfigured(cfg)) return "Not set";
         if (IsUsb(cfg))
             return $"USB · {cfg!.UsbDeviceName!.Trim()}";
-        return $"{cfg!.Ip}:{cfg.Port > 0 ? cfg.Port : 9100}";
+        return $"{cfg!.Ip}:{(cfg.Port > 0 ? cfg.Port : 9100)}";
     }
 
     public static string QueueKey(PrintConfig cfg)
     {
         if (IsUsb(cfg))
             return $"usb:{cfg.UsbDeviceName!.Trim()}";
-        return $"{cfg.Ip.Trim()}:{cfg.Port > 0 ? cfg.Port : 9100}";
+        return $"{cfg.Ip.Trim()}:{(cfg.Port > 0 ? cfg.Port : 9100)}";
     }
 }
 
