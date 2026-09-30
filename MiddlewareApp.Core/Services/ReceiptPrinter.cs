@@ -3,10 +3,8 @@ using MiddlewareApp.Core.Models;
 namespace MiddlewareApp.Core.Services;
 
 /// <summary>
-/// Composes formatter → renderer → TCP transport for one job, including the image
-/// reachability check and the retry-without-logo fallback (spec §5.1): if the print
-/// fails and the payload contains a logo, retry once with all images stripped —
-/// the bill must still print if logo rendering breaks.
+/// Composes formatter → renderer → TCP or Windows spooler transport for one job,
+/// including the image reachability check and the retry-without-logo fallback (spec §5.1).
 /// </summary>
 public class ReceiptPrinter
 {
@@ -14,12 +12,18 @@ public class ReceiptPrinter
 
     private readonly EscPosRenderer _renderer;
     private readonly TcpPrinterTransport _transport;
+    private readonly ISpoolerPrinterTransport? _spooler;
     private readonly HttpClient _http;
 
-    public ReceiptPrinter(EscPosRenderer renderer, TcpPrinterTransport? transport = null, HttpClient? http = null)
+    public ReceiptPrinter(
+        EscPosRenderer renderer,
+        TcpPrinterTransport? transport = null,
+        ISpoolerPrinterTransport? spooler = null,
+        HttpClient? http = null)
     {
         _renderer = renderer;
         _transport = transport ?? new TcpPrinterTransport();
+        _spooler = spooler;
         _http = http ?? new HttpClient();
     }
 
@@ -41,21 +45,38 @@ public class ReceiptPrinter
             reachableLines.Add(line);
         }
 
-        var port = config.Port > 0 ? config.Port : 9100;
         var hasImages = reachableLines.Any(l => l is ImageLine);
         try
         {
             var bytes = await _renderer.RenderAsync(reachableLines, width, includeImages: true, openCashbox)
                 .ConfigureAwait(false);
-            await _transport.SendAsync(config.Ip, port, bytes, ct).ConfigureAwait(false);
+            await SendBytesAsync(config, bytes, ct).ConfigureAwait(false);
         }
         catch when (hasImages && !ct.IsCancellationRequested)
         {
             var stripped = reachableLines.Where(l => l is not ImageLine).ToList();
             var bytes = await _renderer.RenderAsync(stripped, width, includeImages: false, openCashbox)
                 .ConfigureAwait(false);
-            await _transport.SendAsync(config.Ip, port, bytes, ct).ConfigureAwait(false);
+            await SendBytesAsync(config, bytes, ct).ConfigureAwait(false);
         }
+    }
+
+    private async Task SendBytesAsync(PrintConfig config, byte[] bytes, CancellationToken ct)
+    {
+        if (PrintConfigHelpers.IsUsb(config))
+        {
+            if (_spooler == null)
+                throw new InvalidOperationException(
+                    "USB / Windows printer is configured but spooler transport is not available");
+            await _spooler.SendAsync(config.UsbDeviceName!.Trim(), bytes, ct).ConfigureAwait(false);
+            return;
+        }
+
+        if (!PrintConfigHelpers.IsTcp(config))
+            throw new InvalidOperationException("Printer config is neither TCP nor USB");
+
+        var port = config.Port > 0 ? config.Port : 9100;
+        await _transport.SendAsync(config.Ip, port, bytes, ct).ConfigureAwait(false);
     }
 
     /// <summary>Downloads an image for the renderer (used as its imageFetcher).</summary>

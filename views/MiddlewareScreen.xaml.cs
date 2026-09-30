@@ -152,7 +152,7 @@ public partial class MiddlewareScreen : UserControl
         slots.AddRange(config.Departments.Select(d =>
             (d.Name ?? $"Department {d.Id}", $"Department · {d.Id}", d.PrintConfig)));
 
-        var anyAssigned = slots.Any(s => s.cfg != null && !string.IsNullOrWhiteSpace(s.cfg.Ip));
+        var anyAssigned = slots.Any(s => PrintConfigHelpers.IsConfigured(s.cfg));
         for (var i = 0; i < slots.Count; i++)
         {
             var (name, kind, cfg) = slots[i];
@@ -199,11 +199,11 @@ public partial class MiddlewareScreen : UserControl
         row.Children.Add(left);
 
         var right = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right };
-        if (cfg != null && !string.IsNullOrWhiteSpace(cfg.Ip))
+        if (PrintConfigHelpers.IsConfigured(cfg))
         {
             right.Children.Add(new TextBlock
             {
-                Text = $"{cfg.Ip}:{cfg.Port}",
+                Text = PrintConfigHelpers.Label(cfg),
                 FontSize = 13,
                 FontWeight = FontWeights.SemiBold,
                 Foreground = (Brush)FindResource("TextBrush"),
@@ -211,7 +211,7 @@ public partial class MiddlewareScreen : UserControl
             });
             right.Children.Add(new TextBlock
             {
-                Text = cfg.PaperSize,
+                Text = cfg!.PaperSize,
                 FontSize = 12,
                 Foreground = (Brush)FindResource("TextMutedBrush"),
                 HorizontalAlignment = HorizontalAlignment.Right,
@@ -283,6 +283,7 @@ public partial class MiddlewareScreen : UserControl
             AddManualPrinter = AddManualPrinter,
         };
         card.SaveRequested += async (c, printer) => await SavePrinterAsync(c, printer);
+        card.SaveWindowsRequested += async (c, name) => await SaveWindowsPrinterAsync(c, name);
         card.RemoveRequested += async c => await RemovePrinterAsync(c);
         return card;
     }
@@ -383,9 +384,13 @@ public partial class MiddlewareScreen : UserControl
         slot.IsMiddlewareConfigured = true;
         slot.PrintConfig = new PrintConfig
         {
+            ConnectionType = "tcp",
             Ip = printer.Ip,
             Port = printer.Port > 0 ? printer.Port : 9100,
             PaperSize = "80mm", // always 80mm — no UI to choose (spec §3.3)
+            UsbVendorId = null,
+            UsbProductId = null,
+            UsbDeviceName = null,
         };
 
         SetBusy(true);
@@ -395,6 +400,44 @@ public partial class MiddlewareScreen : UserControl
             await _api.PatchPrintConfigAsync(_session.BusinessCode, _session.LocationId, _session.DeviceId, payload);
             MessageBox.Show("Printer configured successfully", "Saved",
                 MessageBoxButton.OK, MessageBoxImage.Information);
+            await LoadConfigAsync(silent: true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            card.SetSaving(false);
+            SetBusy(false);
+        }
+    }
+
+    private async Task SaveWindowsPrinterAsync(ConfigCard card, string windowsPrinterName)
+    {
+        if (_busy || _config == null || !card.IsDevice) return;
+
+        var payload = _config.Clone();
+        payload.Device.IsMiddlewareConfigured = true;
+        payload.Device.PrintConfig = new PrintConfig
+        {
+            ConnectionType = "usb",
+            Ip = "",
+            Port = 9100,
+            PaperSize = "80mm",
+            UsbDeviceName = windowsPrinterName.Trim(),
+            UsbVendorId = 0,
+            UsbProductId = 0,
+        };
+
+        SetBusy(true);
+        card.SetSaving(true);
+        try
+        {
+            await _api.PatchPrintConfigAsync(_session.BusinessCode, _session.LocationId, _session.DeviceId, payload);
+            MessageBox.Show(
+                $"Windows printer \"{windowsPrinterName}\" saved for this terminal.",
+                "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
             await LoadConfigAsync(silent: true);
         }
         catch (Exception ex)

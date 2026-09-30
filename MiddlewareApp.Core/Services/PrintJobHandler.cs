@@ -50,7 +50,7 @@ public static class PrintJobHandler
         if (string.IsNullOrWhiteSpace(html))
             return JobEvaluation.Skip("Print job has empty HTML");
 
-        // 4. Printer resolution: department's config, else fall back to the terminal's.
+        // 4. Printer resolution: department's LAN config, else fall back to the terminal's.
         var departmentId = GetInt(job, "department_id");
         PrintConfig? printer = null;
         if (departmentId.HasValue)
@@ -62,13 +62,17 @@ public static class PrintJobHandler
         if (printer == null)
             return JobEvaluation.Skip("No printer configured. Set IP for terminal/department in middleware first.");
 
+        // Department / KOT jobs must not use USB cashier (Android parity).
+        if (departmentId.HasValue && PrintConfigHelpers.IsUsb(printer))
+            return JobEvaluation.Skip("Department printers must use LAN — USB is cashier-only");
+
         return JobEvaluation.Print(printer, html, ShouldOpenCashbox(command));
     }
 
     private static PrintConfig? ConfiguredPrinter(SlotConfig? slot)
     {
         var cfg = slot?.PrintConfig;
-        if (cfg == null || string.IsNullOrWhiteSpace(cfg.Ip)) return null;
+        if (!PrintConfigHelpers.IsConfigured(cfg)) return null;
         return cfg;
     }
 

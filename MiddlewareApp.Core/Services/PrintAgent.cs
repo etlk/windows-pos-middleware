@@ -19,6 +19,9 @@ public class PrintAgent
     /// <summary>Set by the host app to enable logo printing (System.Drawing on Windows).</summary>
     public static IReceiptImageDecoder? ImageDecoder { get; set; }
 
+    /// <summary>Set by the host app for USB / Windows-installed printer RAW jobs.</summary>
+    public static ISpoolerPrinterTransport? SpoolerTransport { get; set; }
+
     public AgentSession? Session { get; private set; }
     public AgentConfigs? Configs { get; private set; }
     public bool IsRunning { get; private set; }
@@ -37,7 +40,7 @@ public class PrintAgent
         // The decoder wrapper lets the host app install ImageDecoder after startup.
         ReceiptPrinter? printerRef = null;
         var renderer = new EscPosRenderer(new LazyDecoder(), url => printerRef!.FetchImageAsync(url));
-        _printer = new ReceiptPrinter(renderer);
+        _printer = new ReceiptPrinter(renderer, spooler: new LazySpooler());
         printerRef = _printer;
 
         _listener.StateChanged += _ => Changed?.Invoke();
@@ -48,6 +51,17 @@ public class PrintAgent
     {
         public MonoImage? Decode(byte[] data, int targetWidthDots, bool exactWidth) =>
             ImageDecoder?.Decode(data, targetWidthDots, exactWidth);
+    }
+
+    private sealed class LazySpooler : ISpoolerPrinterTransport
+    {
+        public Task SendAsync(string printerName, byte[] data, CancellationToken ct = default)
+        {
+            var spooler = SpoolerTransport
+                ?? throw new InvalidOperationException(
+                    "USB / Windows printer print requires SpoolerTransport — set it at app startup");
+            return spooler.SendAsync(printerName, data, ct);
+        }
     }
 
     public async Task StartAsync(AgentSession session, AgentConfigs configs)
@@ -125,13 +139,12 @@ public class PrintAgent
         }
 
         var printer = evaluation.Printer!;
-        var port = printer.Port > 0 ? printer.Port : 9100;
-        var key = $"{printer.Ip}:{port}";
+        var key = PrintConfigHelpers.QueueKey(printer);
         try
         {
             await _queue.Enqueue(key, () =>
                 _printer.PrintAsync(evaluation.Html!, printer, evaluation.OpenCashbox)).ConfigureAwait(false);
-            SetLastJob($"Printed to {printer.Ip}:{port}");
+            SetLastJob($"Printed to {PrintConfigHelpers.Label(printer)}");
         }
         catch (Exception ex)
         {

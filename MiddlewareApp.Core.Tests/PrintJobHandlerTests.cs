@@ -31,7 +31,17 @@ public class PrintJobHandlerTests
     }
 
     private static PrintConfig Printer(string ip, int port = 9100) =>
-        new() { Ip = ip, Port = port, PaperSize = "80mm" };
+        new() { ConnectionType = "tcp", Ip = ip, Port = port, PaperSize = "80mm" };
+
+    private static PrintConfig UsbPrinter(string windowsName) =>
+        new()
+        {
+            ConnectionType = "usb",
+            UsbDeviceName = windowsName,
+            UsbVendorId = 0,
+            UsbProductId = 0,
+            PaperSize = "80mm",
+        };
 
     [Theory]
     [InlineData("PRINT")]
@@ -189,5 +199,38 @@ public class PrintJobHandlerTests
         var result = PrintJobHandler.Evaluate(raw, Configs(Printer("10.0.0.5")));
         Assert.True(result.ShouldPrint);
         Assert.False(result.OpenCashbox);
+    }
+
+    [Fact]
+    public void UsbTerminalJob_IsAccepted()
+    {
+        var raw = """{"command":"PRINT_RECEIPT","terminal_id":1,"html":"<p>x</p>"}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(UsbPrinter("EPSON TM-T82")));
+        Assert.True(result.ShouldPrint);
+        Assert.True(PrintConfigHelpers.IsUsb(result.Printer));
+        Assert.Equal("EPSON TM-T82", result.Printer!.UsbDeviceName);
+        Assert.True(result.OpenCashbox);
+    }
+
+    [Fact]
+    public void DepartmentJob_FallingBackToUsbTerminal_IsRejected()
+    {
+        var configs = Configs(UsbPrinter("EPSON TM-T82"), new[] { (4, (PrintConfig?)null) });
+        var raw = """{"command":"PRINT_KOT","department_id":4,"html":"<p>x</p>"}""";
+        var result = PrintJobHandler.Evaluate(raw, configs);
+        Assert.False(result.ShouldPrint);
+        Assert.Equal("Department printers must use LAN — USB is cashier-only", result.Message);
+    }
+
+    [Fact]
+    public void DepartmentJob_WithLanDept_IgnoresUsbTerminal()
+    {
+        var configs = Configs(
+            UsbPrinter("EPSON TM-T82"),
+            new[] { (4, (PrintConfig?)Printer("10.0.0.9", 9101)) });
+        var raw = """{"command":"PRINT_KOT","department_id":4,"html":"<p>x</p>"}""";
+        var result = PrintJobHandler.Evaluate(raw, configs);
+        Assert.True(result.ShouldPrint);
+        Assert.Equal("10.0.0.9", result.Printer!.Ip);
     }
 }
