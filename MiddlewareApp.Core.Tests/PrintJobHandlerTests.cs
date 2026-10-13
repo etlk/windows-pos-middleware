@@ -177,10 +177,53 @@ public class PrintJobHandlerTests
     [InlineData("PRINT_KOT", false)]
     [InlineData("PRINT", false)]
     [InlineData("PRINT_SOMETHING", false)]
+    [InlineData("OPEN_CASHBOX", false)]
     [InlineData(null, false)]
     public void ShouldOpenCashbox_OnlyForPrintReceipt(string? command, bool expected)
     {
+        // After-receipt kick only — OPEN_CASHBOX is a separate CashboxOnly job.
         Assert.Equal(expected, PrintJobHandler.ShouldOpenCashbox(command));
+    }
+
+    [Fact]
+    public void OpenCashboxCommand_OpensDrawerWithoutHtml()
+    {
+        var raw = """{"command":"OPEN_CASHBOX","terminal_id":1,"department_id":null}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(Printer("10.0.0.5")));
+        Assert.True(result.ShouldPrint);
+        Assert.True(result.CashboxOnly);
+        Assert.True(result.OpenCashbox);
+        Assert.Equal("10.0.0.5", result.Printer!.Ip);
+        Assert.True(string.IsNullOrEmpty(result.Html));
+    }
+
+    [Fact]
+    public void OpenCashboxCommand_UsesTerminalEvenIfDepartmentIdPresent()
+    {
+        var configs = Configs(Printer("10.0.0.5"), new[] { (4, (PrintConfig?)Printer("10.0.0.9")) });
+        var raw = """{"command":"OPEN_CASHBOX","terminal_id":1,"department_id":4}""";
+        var result = PrintJobHandler.Evaluate(raw, configs);
+        Assert.True(result.CashboxOnly);
+        Assert.Equal("10.0.0.5", result.Printer!.Ip);
+    }
+
+    [Fact]
+    public void OpenCashboxCommand_WrongTerminal_IsSkipped()
+    {
+        var raw = """{"command":"OPEN_CASHBOX","terminal_id":7}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(Printer("10.0.0.5"), selectedDeviceId: 1));
+        Assert.False(result.ShouldPrint);
+        Assert.False(result.CashboxOnly);
+        Assert.Equal("Skipped — terminal_id 7 ≠ this device 1", result.Message);
+    }
+
+    [Fact]
+    public void OpenCashboxCommand_NoTerminalPrinter_Fails()
+    {
+        var raw = """{"command":"OPEN_CASHBOX","terminal_id":1}""";
+        var result = PrintJobHandler.Evaluate(raw, Configs(terminal: null));
+        Assert.False(result.ShouldPrint);
+        Assert.Equal("No printer configured. Set IP for terminal/department in middleware first.", result.Message);
     }
 
     [Fact]

@@ -142,6 +142,13 @@ public class PrintAgent
         var key = PrintConfigHelpers.QueueKey(printer);
         try
         {
+            if (evaluation.CashboxOnly)
+            {
+                await _queue.Enqueue(key, () => _printer.OpenCashboxAsync(printer)).ConfigureAwait(false);
+                SetLastJob($"Cash drawer opened on {PrintConfigHelpers.Label(printer)}");
+                return;
+            }
+
             await _queue.Enqueue(key, () =>
                 _printer.PrintAsync(evaluation.Html!, printer, evaluation.OpenCashbox)).ConfigureAwait(false);
             SetLastJob($"Printed to {PrintConfigHelpers.Label(printer)}");

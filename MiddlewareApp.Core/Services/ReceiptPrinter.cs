@@ -27,6 +27,18 @@ public class ReceiptPrinter
         _http = http ?? new HttpClient();
     }
 
+    /// <summary>
+    /// ESC/POS drawer kick only (no receipt text, feed, or cut).
+    /// ESC @ init + ESC p pulse — same pulse used after PRINT_RECEIPT.
+    /// </summary>
+    public static readonly byte[] CashboxPulseBytes =
+        new byte[] { 0x1B, 0x40, 0x1B, 0x70, 0x00, 0x3C, 0xFF };
+
+    public async Task OpenCashboxAsync(PrintConfig config, CancellationToken ct = default)
+    {
+        await SendBytesAsync(config, CashboxPulseBytes, ct).ConfigureAwait(false);
+    }
+
     public async Task PrintAsync(
         string html,
         PrintConfig config,
