@@ -6,6 +6,8 @@ namespace MiddlewareApp.Core.Services;
 public sealed class JobEvaluation
 {
     public bool ShouldPrint { get; init; }
+    /// <summary>OPEN_CASHBOX — drawer pulse only, no receipt HTML.</summary>
+    public bool CashboxOnly { get; init; }
     /// <summary>Result message when not printing (ignored / skipped / failed validation).</summary>
     public string? Message { get; init; }
     public PrintConfig? Printer { get; init; }
@@ -15,6 +17,8 @@ public sealed class JobEvaluation
     public static JobEvaluation Skip(string message) => new() { ShouldPrint = false, Message = message };
     public static JobEvaluation Print(PrintConfig printer, string html, bool openCashbox = false) =>
         new() { ShouldPrint = true, Printer = printer, Html = html, OpenCashbox = openCashbox };
+    public static JobEvaluation OpenCashboxOnly(PrintConfig printer) =>
+        new() { ShouldPrint = true, CashboxOnly = true, Printer = printer, OpenCashbox = true };
 }
 
 /// <summary>
@@ -27,23 +31,35 @@ public static class PrintJobHandler
     public static bool ShouldOpenCashbox(string? command) =>
         string.Equals(command?.Trim(), "PRINT_RECEIPT", StringComparison.OrdinalIgnoreCase);
 
+    public static bool IsOpenCashboxCommand(string? command) =>
+        string.Equals(command?.Trim(), "OPEN_CASHBOX", StringComparison.OrdinalIgnoreCase);
+
     public static JobEvaluation Evaluate(string rawPayload, AgentConfigs configs)
     {
         var job = UnwrapPayload(rawPayload);
 
-        // 1. Command filter: PRINT, PRINT_RECEIPT, PRINT_KOT, or anything starting with
-        //    PRINT_ (case-insensitive).
+        // 1. Command filter: PRINT*, or OPEN_CASHBOX (drawer only, no HTML).
         var command = job?["command"]?.GetValue<string>();
         var cmd = command?.Trim().ToUpperInvariant();
+        var isOpenCashbox = IsOpenCashboxCommand(command);
         var isPrint = cmd == "PRINT" || cmd == "PRINT_RECEIPT" || cmd == "PRINT_KOT" ||
                       (cmd != null && cmd.StartsWith("PRINT_"));
-        if (!isPrint)
+        if (!isPrint && !isOpenCashbox)
             return JobEvaluation.Skip($"Ignored command: {command ?? "(none)"}");
 
         // 2. Terminal filter: jobs with terminal_id null are handled by everyone on the channel.
         var terminalId = GetInt(job, "terminal_id");
         if (terminalId.HasValue && terminalId.Value != configs.SelectedDeviceId)
             return JobEvaluation.Skip($"Skipped — terminal_id {terminalId.Value} ≠ this device {configs.SelectedDeviceId}");
+
+        // OPEN_CASHBOX: cashier terminal printer only — no HTML, no department routing.
+        if (isOpenCashbox)
+        {
+            var terminal = ConfiguredPrinter(configs.Device);
+            if (terminal == null)
+                return JobEvaluation.Skip("No printer configured. Set IP for terminal/department in middleware first.");
+            return JobEvaluation.OpenCashboxOnly(terminal);
+        }
 
         // 3. HTML may be under html or HTML.
         var html = job?["html"]?.GetValue<string>() ?? job?["HTML"]?.GetValue<string>();

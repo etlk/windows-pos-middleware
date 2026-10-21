@@ -2,7 +2,7 @@ namespace MiddlewareApp.Core;
 
 /// <summary>
 /// Build-time configuration (spec §2). No login or API keys — the tenant API is
-/// unauthenticated and addressed by business code.
+/// unauthenticated and addressed by business code su.
 /// </summary>
 public static class AppConfig
 {
