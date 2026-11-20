@@ -84,4 +84,28 @@ public class NbspPaddingTests
         Assert.Contains("World", lines);
         Assert.DoesNotContain(lines, l => l.Length > 0 && l.Trim(' ', ' ').Length == 0);
     }
+
+    [Fact]
+    public void NewKotTemplate_KeepsFixedBottomBlock_AndAsciiSafe()
+    {
+        var nb = " ";
+        var kot = "<html><head><style>@page { size: 40mm 30mm; margin: 0; }</style></head><body>" +
+                  "<div class=\"number\">Number 104 <span class=\"count\">3-1</span></div><div class=\"line\"></div>" +
+                  "<div class=\"name\">Chocolate Cookie Sundae</div><div class=\"name\">(Normal/Less Ice/Extr…</div>" +
+                  $"<div class=\"name\">{nb}</div><div class=\"gap\">{nb}</div>" +
+                  "<div class=\"price\">LKR 550.00</div><div class=\"date\">2026-11-20 17:08</div><div class=\"note\">Consume within 24 hours</div></body></html>";
+        foreach (var lang in new[] { "zpl", "tspl", "cpcl" })
+        {
+            var o = LabelFormat.Build(lang, kot);
+            Assert.Contains("\r\n", o);
+            Assert.Contains("Number 104 3-1", o);
+            Assert.False(o.Contains((char)0x2026), lang + ": ellipsis must be folded");
+            Assert.False(o.Contains('\u0001'), lang + ": blank marker leaked: " + o.Replace("\u0001", "<SOH>").Replace("\r\n", "|"));
+        }
+        var z = LabelFormat.Build("zpl", kot);
+        int Y(string text) => int.Parse(System.Text.RegularExpressions.Regex.Match(
+            z, @"\^FO16,(\d+)\^A0N,\d+,\d+\^FD" + System.Text.RegularExpressions.Regex.Escape(text)).Groups[1].Value);
+        Assert.Equal(3 * 24, Y("LKR 550.00") - Y("(Normal/Less Ice/Extr."));
+        Assert.Contains("\"Caf?\"", LabelFormat.Build("tspl", "<div>Café</div>"));
+    }
 }

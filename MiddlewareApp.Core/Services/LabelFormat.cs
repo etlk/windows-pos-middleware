@@ -15,6 +15,9 @@ public static class LabelFormat
     private const int Mx = 16; // left/right margin (2 mm) - labels have die-cut edges
     private const int My = 8;
 
+    /// <summary>Marks an intentionally empty row (a &amp;nbsp;-only line) so the layout keeps its height.</summary>
+    private const string Blank = "\u0001";
+
     private static readonly Regex PageSize = new(
         @"@page[^{]*\{[^}]*?size:\s*([\d.]+)\s*mm\s+([\d.]+)\s*mm",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
@@ -38,15 +41,27 @@ public static class LabelFormat
             text = Regex.Replace(text, @"<br\s*/?>|</(p|div|h[1-6]|li|tr)>", "\n", RegexOptions.IgnoreCase);
             text = WebUtility.HtmlDecode(Regex.Replace(text, @"<[^>]+>", ""));
         }
-        return text.Split('\n')
-            .Select(l => Regex.Replace(l, @"\s+", " ").Trim())
+        var lines = text.Split('\n')
+            .Select(l =>
+            {
+                // "..." is one char in the template, keep it one char wide on the label too
+                var t = Regex.Replace(l.Replace('…', '.'), @"\s+", " ").Trim();
+                return t.Length == 0 && l.Contains(' ') ? Blank : t;
+            })
             .Where(l => l.Length > 0)
             .ToList();
+        while (lines.Count > 0 && lines[0] == Blank) lines.RemoveAt(0);
+        while (lines.Count > 0 && lines[^1] == Blank) lines.RemoveAt(lines.Count - 1);
+        return lines;
     }
 
-    /// <summary>Printer fonts are ASCII only; strip characters the languages use as delimiters.</summary>
-    private static string Clean(string s) =>
-        new(s.Select(c => c is '"' or '^' or '~' or '\\' ? ' ' : c).ToArray());
+    /// <summary>
+    /// Strip characters the languages use as delimiters. ZPL runs in UTF-8 mode (^CI28);
+    /// TSPL / CPCL fonts are ASCII only, so anything else becomes "?".
+    /// </summary>
+    private static string Clean(string lang, string s) =>
+        new(s.Select(c => c is '"' or '^' or '~' or '\\' ? ' '
+            : lang != "zpl" && (c < 0x20 || c > 0x7E) ? '?' : c).ToArray());
 
     /// <summary>Word-wrap to <paramref name="max"/> chars; words longer than that are hard-broken.</summary>
     public static List<string> Wrap(string text, int max)
@@ -91,7 +106,7 @@ public static class LabelFormat
         for (; pitch >= 16; pitch -= 4)
         {
             var max = Math.Max(1, (w - 2 * Mx) / CharWidth(lang, pitch));
-            rows = lines.SelectMany(l => Wrap(l, max)).ToList();
+            rows = lines.SelectMany(l => l == Blank ? new List<string> { Blank } : Wrap(l, max)).ToList();
             if (rows.Count * pitch <= h - 2 * My) break;
         }
         return (Math.Max(pitch, 16), rows);
@@ -119,7 +134,8 @@ public static class LabelFormat
                 sb.Append("^XA^CI28");
                 if (size != null) sb.Append($"^PW{w}^LL{h}");
                 for (var i = 0; i < rows.Count; i++)
-                    sb.Append($"^FO{Mx},{Y(i)}^A0N,{pitch - 4},{cw}^FD{Clean(rows[i])}^FS");
+                    if (rows[i] != Blank)
+                        sb.Append($"^FO{Mx},{Y(i)}^A0N,{pitch - 4},{cw}^FD{Clean(lang, rows[i])}^FS");
                 sb.Append("^XZ\r\n");
                 break;
 
@@ -129,7 +145,8 @@ public static class LabelFormat
                     sb.Append($"SIZE {t.W.ToString(inv)} mm,{t.H.ToString(inv)} mm\r\nGAP 2 mm,0 mm\r\n");
                 sb.Append("CLS\r\n");
                 for (var i = 0; i < rows.Count; i++)
-                    sb.Append($"TEXT {Mx},{Y(i)},\"{font}\",0,1,1,\"{Clean(rows[i])}\"\r\n");
+                    if (rows[i] != Blank)
+                        sb.Append($"TEXT {Mx},{Y(i)},\"{font}\",0,1,1,\"{Clean(lang, rows[i])}\"\r\n");
                 sb.Append("PRINT 1,1\r\n");
                 break;
 
@@ -138,7 +155,8 @@ public static class LabelFormat
                 sb.Append($"! 0 200 200 {height} 1\r\n");
                 if (w > 0) sb.Append($"PAGE-WIDTH {w}\r\n");
                 for (var i = 0; i < rows.Count; i++)
-                    sb.Append($"TEXT 7 0 {Mx} {Y(i)} {Clean(rows[i])}\r\n");
+                    if (rows[i] != Blank)
+                        sb.Append($"TEXT 7 0 {Mx} {Y(i)} {Clean(lang, rows[i])}\r\n");
                 sb.Append("FORM\r\nPRINT\r\n");
                 break;
         }
