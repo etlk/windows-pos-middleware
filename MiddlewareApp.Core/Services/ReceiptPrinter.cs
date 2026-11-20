@@ -45,6 +45,15 @@ public class ReceiptPrinter
         bool openCashbox = false,
         CancellationToken ct = default)
     {
+        // Label printers (ZPL/TSPL/CPCL): raw text over the same TCP / spooler transports.
+        var lang = PrintConfigHelpers.LabelLanguage(config);
+        if (lang != null)
+        {
+            var label = System.Text.Encoding.UTF8.GetBytes(LabelFormat.Build(lang, html));
+            await SendBytesAsync(config, label, ct).ConfigureAwait(false);
+            return;
+        }
+
         var width = ReceiptFormatter.CharsPerLine(config.PaperSize);
         var lines = ReceiptFormatter.Format(html, width).ToList();
 

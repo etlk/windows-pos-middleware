@@ -20,6 +20,14 @@ public partial class ConfigCard : UserControl
     private bool _scanning;
     private string? _selectedIp;
     private bool _saving;
+    private bool _langInit;
+    private string? _loadedLang;
+
+    private static readonly string?[] Languages = { null, "zpl", "tspl", "cpcl" };
+
+    /// <summary>null = receipt (ESC/POS, default); otherwise "zpl" | "tspl" | "cpcl".</summary>
+    public string? SelectedLanguage =>
+        PrinterTypeCombo.SelectedIndex is >= 0 and < 4 ? Languages[PrinterTypeCombo.SelectedIndex] : null;
 
     /// <summary>"device" or "dept-{id}" — used by the parent to build the PATCH payload.</summary>
     public string SlotKey { get; }
@@ -53,6 +61,16 @@ public partial class ConfigCard : UserControl
     {
         _slot = slot;
         var cfg = slot.PrintConfig;
+
+        // Reflect the saved language only on first load / when it changed, so the 60 s
+        // refresh doesn't overwrite an unsaved choice.
+        var lang = PrintConfigHelpers.LabelLanguage(cfg);
+        if (!_langInit || lang != _loadedLang)
+        {
+            PrinterTypeCombo.SelectedIndex = Math.Max(0, Array.IndexOf(Languages, lang));
+            _loadedLang = lang;
+            _langInit = true;
+        }
         var assigned = PrintConfigHelpers.IsConfigured(cfg);
 
         if (assigned)
@@ -98,6 +116,7 @@ public partial class ConfigCard : UserControl
         RemoveButton.IsEnabled = !busy;
         UseIpButton.IsEnabled = !busy;
         SaveWindowsButton.IsEnabled = !busy;
+        PrinterTypeCombo.IsEnabled = !busy;
         WindowsPrinterCombo.IsEnabled = !busy;
     }
 

@@ -30,6 +30,14 @@ public class PrintConfig
     [JsonPropertyName("usb_product_id")] public int? UsbProductId { get; set; }
     /// <summary>Windows printer queue name when connection_type is usb.</summary>
     [JsonPropertyName("usb_device_name")] public string? UsbDeviceName { get; set; }
+    /// <summary>
+    /// Optional command language: "zpl" | "tspl" | "cpcl" for label printers. Null / "escpos"
+    /// = receipt printer (default). Omitted from the PATCH body when null so existing
+    /// backends see no change.
+    /// </summary>
+    [JsonPropertyName("print_language")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PrintLanguage { get; set; }
 
     public PrintConfig Clone() => new()
     {
@@ -40,6 +48,7 @@ public class PrintConfig
         UsbVendorId = UsbVendorId,
         UsbProductId = UsbProductId,
         UsbDeviceName = UsbDeviceName,
+        PrintLanguage = PrintLanguage,
     };
 }
 
@@ -60,6 +69,13 @@ public static class PrintConfigHelpers
     public static bool IsTcp(PrintConfig? cfg) =>
         NormalizeConnectionType(cfg) == "tcp" &&
         !string.IsNullOrWhiteSpace(cfg?.Ip);
+
+    /// <summary>"zpl" / "tspl" / "cpcl", or null for the default ESC/POS path.</summary>
+    public static string? LabelLanguage(PrintConfig? cfg)
+    {
+        var l = cfg?.PrintLanguage?.Trim().ToLowerInvariant();
+        return l is "zpl" or "tspl" or "cpcl" ? l : null;
+    }
 
     public static bool IsConfigured(PrintConfig? cfg) => IsUsb(cfg) || IsTcp(cfg);
 
