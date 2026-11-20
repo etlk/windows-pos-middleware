@@ -794,7 +794,9 @@ public static class ReceiptFormatter
             if (c is '<' or '>' or '[' or ']') continue;
             sb.Append(c);
         }
-        return Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
+        // Collapse ASCII whitespace only: templates pad columns with &nbsp; runs ("Name      1")
+        // and those must survive (EscPosRenderer.Asciify prints NBSP as a space).
+        return Regex.Replace(sb.ToString(), @"[ \t\r\n\f\v]+", " ").Trim(' ', '\t', '\r', '\n', '\f', '\v');
     }
 
     internal static List<string> Wrap(string text, int width)
