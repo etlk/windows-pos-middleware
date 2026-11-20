@@ -40,6 +40,16 @@
                        FontSize="13" Foreground="{StaticResource TextMutedBrush}"
                        Margin="0,10,0,0"/>
 
+            <!-- Printer type: receipt (default) or label language -->
+            <TextBlock Style="{StaticResource FieldLabel}" Text="Printer type" Margin="0,16,0,4"/>
+            <ComboBox x:Name="PrinterTypeCombo" FontSize="13" Padding="8,6"
+                      VerticalContentAlignment="Center" SelectedIndex="0">
+                <ComboBoxItem Content="Receipt (ESC/POS)"/>
+                <ComboBoxItem Content="Label · ZPL"/>
+                <ComboBoxItem Content="Label · TSPL"/>
+                <ComboBoxItem Content="Label · CPCL"/>
+            </ComboBox>
+
             <!-- Windows / USB printer (terminal / cashier only) -->
             <StackPanel x:Name="WindowsPrinterSection" Visibility="Collapsed" Margin="0,16,0,0">
                 <TextBlock Style="{StaticResource FieldLabel}"

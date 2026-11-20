@@ -17,6 +17,15 @@ public static class AgentStorage
     private static string SessionPath => Path.Combine(Folder, "mwire.agent.session.v1.json");
     private static string ConfigsPath => Path.Combine(Folder, "mwire.agent.configs.v1.json");
 
+    private static string LanguagesPath => Path.Combine(Folder, "mwire.agent.languages.v1.json");
+
+    /// <summary>Local copy of each slot's print_language ("device" / "dept-{id}") for backends that don't store it.</summary>
+    public static Dictionary<string, string> LoadLanguages() =>
+        Read<Dictionary<string, string>>(LanguagesPath) ?? new();
+
+    public static void SaveLanguages(Dictionary<string, string> languages) =>
+        WriteAtomic(LanguagesPath, languages);
+
     public static void SaveSession(AgentSession session) => WriteAtomic(SessionPath, session);
     public static void SaveConfigs(AgentConfigs configs) => WriteAtomic(ConfigsPath, configs);
 
@@ -27,6 +36,7 @@ public static class AgentStorage
     {
         TryDelete(SessionPath);
         TryDelete(ConfigsPath);
+        TryDelete(LanguagesPath);
     }
 
     private static void WriteAtomic<T>(string path, T value)
