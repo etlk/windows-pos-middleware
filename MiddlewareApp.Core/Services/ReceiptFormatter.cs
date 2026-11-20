@@ -796,7 +796,7 @@ public static class ReceiptFormatter
         }
         // Collapse ASCII whitespace only: templates pad columns with &nbsp; runs ("Name      1")
         // and those must survive (EscPosRenderer.Asciify prints NBSP as a space).
-        return Regex.Replace(sb.ToString(), @"[ \t\r\n\f\v]+", " ").Trim(' ', '\t', '\r', '\n', '\f', '\v');
+        return Regex.Replace(sb.ToString(), @"[ \t\r\n\f\v]+", " ").Trim(); // edges stay trimmed (Trim also drops NBSP): only interior &nbsp; runs are kept
     }
 
     internal static List<string> Wrap(string text, int width)

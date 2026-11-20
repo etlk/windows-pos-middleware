@@ -74,4 +74,14 @@ public class NbspPaddingTests
         // padding stays as NBSP in the model; EscPosRenderer.Asciify prints it as spaces
         Assert.Contains("Product      Qty", text.Replace(' ', ' '));
     }
+
+    [Fact]
+    public void EdgeAndSpacerOnlyNbsp_AreTrimmedAsBefore()
+    {
+        var html = "<div>Hello</div><div>  </div><div> World </div>";
+        var lines = MiddlewareApp.Core.Services.ReceiptFormatter.Format(html, 48)
+            .OfType<MiddlewareApp.Core.Services.TextLine>().Select(l => l.Text).ToList();
+        Assert.Contains("World", lines);
+        Assert.DoesNotContain(lines, l => l.Length > 0 && l.Trim(' ', ' ').Length == 0);
+    }
 }
