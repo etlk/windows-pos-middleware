@@ -391,6 +391,7 @@ public partial class MiddlewareScreen : UserControl
             UsbVendorId = null,
             UsbProductId = null,
             UsbDeviceName = null,
+            PrintLanguage = card.SelectedLanguage,
         };
 
         SetBusy(true);
@@ -428,6 +429,7 @@ public partial class MiddlewareScreen : UserControl
             UsbDeviceName = windowsPrinterName.Trim(),
             UsbVendorId = 0,
             UsbProductId = 0,
+            PrintLanguage = card.SelectedLanguage,
         };
 
         SetBusy(true);
